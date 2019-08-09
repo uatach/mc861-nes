@@ -1,8 +1,24 @@
+
+;---------------------------------------------------------------
+; memory sections / sizes
+; $0000-07FF -  2KB - Internal RAM, chip in the NES
+; $2000-2007 -  1B  - PPU access ports
+; $3F00-3F0F -  2B  - PPU background palette
+; $3F10-3F1F -  2B  - PPU sprites palette
+; $4000-4017 -  3B  - APU and controller access ports
+; $6000-7FFF -  8KB - Optional WRAM inside the game cart
+; $8000-FFFF - 32KB - Game cart ROM
+;----------------------------------------------------------------
+
+
 ;----------------------------------------------------------------
 ; constants
 ;----------------------------------------------------------------
 
+;number of PRG pages
 PRG_COUNT = 1 ;1 = 16KB, 2 = 32KB
+
+;TODO: explain
 MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
 ;----------------------------------------------------------------
@@ -40,7 +56,7 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 ; program bank(s)
 ;----------------------------------------------------------------
 
-  .base $10000-(PRG_COUNT*$4000)
+  .base $10000-(PRG_COUNT*$4000) ; aka $C000
 
 RESET:
   ;NOTE: initialization code goes here
