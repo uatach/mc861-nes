@@ -9,63 +9,63 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 ; variables
 ;----------------------------------------------------------------
 
-   .enum $0000
+  .enum $0000
 
-   ;NOTE: declare variables using the DSB and DSW directives, like this:
+  ;NOTE: declare variables using the DSB and DSW directives, like this:
 
-   ;MyVariable0 .dsb 1
-   ;MyVariable1 .dsb 3
+  ;MyVariable0 .dsb 1
+  ;MyVariable1 .dsb 3
 
-   .ende
+  .ende
 
-   ;NOTE: you can also split the variable declarations into individual pages, like this:
+  ;NOTE: you can also split the variable declarations into individual pages, like this:
 
-   ;.enum $0100
-   ;.ende
+  ;.enum $0100
+  ;.ende
 
-   ;.enum $0200
-   ;.ende
+  ;.enum $0200
+  ;.ende
 
 ;----------------------------------------------------------------
 ; iNES header
 ;----------------------------------------------------------------
 
-   .db "NES", $1a ;identification of the iNES header
-   .db PRG_COUNT ;number of 16KB PRG-ROM pages
-   .db $01 ;number of 8KB CHR-ROM pages
-   .db $00|MIRRORING ;mapper 0 and mirroring
-   .dsb 9, $00 ;clear the remaining bytes
+  .db "NES", $1a ;identification of the iNES header
+  .db PRG_COUNT ;number of 16KB PRG-ROM pages
+  .db $01 ;number of 8KB CHR-ROM pages
+  .db $00|MIRRORING ;mapper 0 and mirroring
+  .dsb 9, $00 ;clear the remaining bytes
 
 ;----------------------------------------------------------------
 ; program bank(s)
 ;----------------------------------------------------------------
 
-   .base $10000-(PRG_COUNT*$4000)
+  .base $10000-(PRG_COUNT*$4000)
 
-Reset:
+loop:
+  JMP loop
 
-   ;NOTE: initialization code goes here
+RESET:
+  ;NOTE: initialization code goes here
+  JMP loop
 
 NMI:
-
-   ;NOTE: NMI code goes here
+  ;NOTE: NMI code goes here
 
 IRQ:
-
-   ;NOTE: IRQ code goes here
+  ;NOTE: IRQ code goes here
 
 ;----------------------------------------------------------------
 ; interrupt vectors
 ;----------------------------------------------------------------
 
-   .org $fffa
-
-   .dw NMI
-   .dw Reset
-   .dw IRQ
+  .org $fffa
+  .dw NMI
+  .dw RESET
+  .dw IRQ
 
 ;----------------------------------------------------------------
 ; CHR-ROM bank
 ;----------------------------------------------------------------
 
-   .incbin "tiles.chr"
+  .incbin "tiles.chr"
