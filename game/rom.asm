@@ -62,14 +62,29 @@ MIRRORING = %0001
 
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
-RESET:
-  ;NOTE: initialization code goes here
-  LDA #%00100000
-  STA $2001
+LoadPalettes:
+  LDX #$00
+LoadPalettesLoop:
+  LDA PaletteData,X
+  STA $2007
+  INX
+  CPX #$20
+  BNE LoadPalettesLoop
+  RTS
 
 loop:
   JMP loop
 
+;----------------------------------------------------------------
+; interrupt handlers
+;----------------------------------------------------------------
+
+RESET:
+  ;NOTE: initialization code goes here
+  LDA #%00100000 ; intensify background
+  STA $2001
+  JSR LoadPalettes
+  JMP loop
 
 NMI:
   ;NOTE: NMI code goes here
@@ -77,6 +92,18 @@ NMI:
 
 IRQ:
   ;NOTE: IRQ code goes here
+  RTI
+
+;----------------------------------------------------------------
+; data
+;----------------------------------------------------------------
+
+; palettes from tutorial
+PaletteData:
+  ;background palette data
+  .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
+  ;sprite palette data
+  .db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
 
 ;----------------------------------------------------------------
 ; interrupt vectors
