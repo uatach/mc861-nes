@@ -25,6 +25,13 @@ CHR_COUNT = 1 ;1 = 8KB, 2 = 16KB
 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 MIRRORING = %0001
 
+;PPU registers
+PPUCTRL = $2000
+PPUMASK = $2001
+PPUSTATUS = $2002
+PPUADDR = $2006
+PPUDATA = $2007
+
 ;----------------------------------------------------------------
 ; variables
 ;----------------------------------------------------------------
@@ -63,16 +70,43 @@ MIRRORING = %0001
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
 LoadPalettes:
+  LDA PPUSTATUS
+  LDA #$3F
+  STA PPUADDR
+  LDA #$00
+  STA PPUADDR
+
   LDX #$00
 LoadPalettesLoop:
   LDA PaletteData,X
-  STA $2007
+  STA PPUDATA
   INX
   CPX #$20
   BNE LoadPalettesLoop
   RTS
 
+WaitVBlanck:
+  BIT PPUSTATUS
+  BPL WaitVBlanck
+  RTS
+
+WriteSprite:
+  LDA #$80
+  STA $0200
+  STA $0203
+  LDA #$00
+  STA $0201
+  STA $0202
+
+  LDA #%10010000
+  STA PPUCTRL
+  LDA #%01011110
+  STA PPUMASK
+  RTS
+
 loop:
+  JSR WaitVBlanck
+  JSR WriteSprite
   JMP loop
 
 ;----------------------------------------------------------------
@@ -81,8 +115,11 @@ loop:
 
 RESET:
   ;NOTE: initialization code goes here
-  LDA #%00100000 ; intensify background
-  STA $2001
+  LDX #$FF
+  TXS
+
+  LDA #%00100000
+  STA PPUMASK
   JSR LoadPalettes
   JMP loop
 
