@@ -29,8 +29,14 @@ MIRRORING = %0001
 PPUCTRL = $2000
 PPUMASK = $2001
 PPUSTATUS = $2002
+PPUSCROLL = $2005
 PPUADDR = $2006
 PPUDATA = $2007
+
+;OAM registers
+OAMADDR = $2003
+OAMDATA = $2004
+OAMDMA = $4014
 
 ;----------------------------------------------------------------
 ; variables
@@ -69,6 +75,53 @@ PPUDATA = $2007
 
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
+Init:
+  SEI
+  CLD
+  LDX #$40
+  STX $4017
+  LDX #$FF
+  TXS
+  INX
+  STX PPUCTRL
+  STX PPUMASK
+  STX $4010
+  BIT PPUSTATUS
+  RTS
+
+InitAPU:
+  RTS
+
+WaitVBlanck:
+  BIT PPUSTATUS
+  BPL WaitVBlanck
+  RTS
+
+ClearMemory:
+  LDA #$00
+  STA $0000,X
+  STA $0100,X
+  STA $0300,X
+  STA $0400,X
+  STA $0500,X
+  STA $0600,X
+  STA $0700,X
+  LDA #$FE
+  STA $0200,X
+  INX
+  BNE ClearMemory
+  RTS
+
+EnableRendering:
+  LDA #%10010000
+  STA PPUCTRL
+  LDA #%00011110
+  STA PPUMASK
+  LDA #$00
+  STA PPUSCROLL
+  STA PPUSCROLL
+  RTS
+
 LoadPalettes:
   LDA PPUSTATUS
   LDA #$3F
@@ -85,11 +138,6 @@ LoadPalettesLoop:
   BNE LoadPalettesLoop
   RTS
 
-WaitVBlanck:
-  BIT PPUSTATUS
-  BPL WaitVBlanck
-  RTS
-
 WriteSprite:
   LDA #$80
   STA $0200
@@ -98,15 +146,9 @@ WriteSprite:
   STA $0201
   STA $0202
 
-  LDA #%10010000
-  STA PPUCTRL
-  LDA #%01011110
-  STA PPUMASK
   RTS
 
 loop:
-  JSR WaitVBlanck
-  JSR WriteSprite
   JMP loop
 
 ;----------------------------------------------------------------
@@ -115,16 +157,22 @@ loop:
 
 RESET:
   ;NOTE: initialization code goes here
-  LDX #$FF
-  TXS
-
-  LDA #%00100000
-  STA PPUMASK
+  ;JSR Init ;FIXME: not working yet
+  JSR WaitVBlanck
+  ;JSR ClearMemory ;FIXME: not working yet
+  JSR WaitVBlanck
   JSR LoadPalettes
+  JSR EnableRendering
   JMP loop
 
 NMI:
   ;NOTE: NMI code goes here
+  LDA #$00
+  STA OAMADDR
+  LDA #$02
+  STA OAMDMA
+  JSR EnableRendering
+  JSR WriteSprite
   RTI
 
 IRQ:
