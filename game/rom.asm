@@ -2,6 +2,7 @@
 ;---------------------------------------------------------------
 ; memory sections / sizes
 ; $0000-07FF -  2KB - Internal RAM, chip in the NES
+; $0800-1FFF -  6KB - RAM Mirrors
 ; $2000-2007 -  1B  - PPU access ports
 ; $3F00-3F0F -  2B  - PPU background palette
 ; $3F10-3F1F -  2B  - PPU sprites palette
@@ -10,7 +11,6 @@
 ; $8000-FFFF - 32KB - Game cart ROM
 ;----------------------------------------------------------------
 
-
 ;----------------------------------------------------------------
 ; constants
 ;----------------------------------------------------------------
@@ -18,8 +18,12 @@
 ;number of PRG pages
 PRG_COUNT = 1 ;1 = 16KB, 2 = 32KB
 
+;number of CHR pages
+CHR_COUNT = 1 ;1 = 8KB, 2 = 16KB
+
 ;TODO: explain
-MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
+;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
+MIRRORING = %0001
 
 ;----------------------------------------------------------------
 ; variables
@@ -48,7 +52,7 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
   .db "NES", $1a ;identification of the iNES header
   .db PRG_COUNT ;number of 16KB PRG-ROM pages
-  .db $01 ;number of 8KB CHR-ROM pages
+  .db CHR_COUNT ;number of 8KB CHR-ROM pages
   .db $00|MIRRORING ;mapper 0 and mirroring
   .dsb 9, $00 ;clear the remaining bytes
 
@@ -56,7 +60,7 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 ; program bank(s)
 ;----------------------------------------------------------------
 
-  .base $10000-(PRG_COUNT*$4000) ; aka $C000
+  .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
 RESET:
   ;NOTE: initialization code goes here
@@ -69,6 +73,7 @@ loop:
 
 NMI:
   ;NOTE: NMI code goes here
+  RTI
 
 IRQ:
   ;NOTE: IRQ code goes here
@@ -77,7 +82,7 @@ IRQ:
 ; interrupt vectors
 ;----------------------------------------------------------------
 
-  .org $fffa
+  .org $FFFA
   .dw NMI
   .dw RESET
   .dw IRQ
