@@ -56,6 +56,9 @@ JOY2 = $4017
   posx .dsb 1
   posy .dsb 1
 
+  controller1 .dsb 1
+  controller2 .dsb 2
+
   .ende
 
   ;NOTE: you can also split the variable declarations into individual pages, like this:
@@ -194,41 +197,52 @@ LatchControllers:
   LDA #$00
   STA JOY1
 
-  LDA JOY1 ;A
-  LDA JOY1 ;B
-  LDA JOY1 ;Select
-  LDA JOY1 ;Start
+  LDX #$08
+ReadController1Loop:
+  LDA JOY1
+  LSR A
+  ROL controller1
+  DEX
+  BNE ReadController1Loop
 
-ReadUp:
-  LDA JOY1 ;Up
-  AND #$00000001
-  BEQ ReadDown
+  LDX #$08
+ReadController2Loop:
+  LDA JOY2
+  LSR A
+  ROL controller2
+  DEX
+  BNE ReadController2Loop
+
+HandleUp:
+  LDA controller1
+  AND #%00001000
+  BEQ HandleDown
   LDA posy
   SEC
   SBC #$01
   STA posy
 
-ReadDown:
-  LDA JOY1 ;Down
-  AND #$00000001
-  BEQ ReadLeft
+HandleDown:
+  LDA controller1
+  AND #%00000100
+  BEQ HandleLeft
   LDA posy
   CLC
   ADC #$01
   STA posy
 
-ReadLeft:
-  LDA JOY1 ;Left
-  AND #$00000001
-  BEQ ReadRight
+HandleLeft:
+  LDA controller1
+  AND #%00000010
+  BEQ HandleRight
   LDA posx
   SEC
   SBC #$01
   STA posx
 
-ReadRight:
-  LDA JOY1 ;Right
-  AND #$00000001
+HandleRight:
+  LDA controller1
+  AND #%00000001
   BEQ Done
   LDA posx
   CLC
