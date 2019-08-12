@@ -38,6 +38,9 @@ OAMADDR = $2003
 OAMDATA = $2004
 OAMDMA = $4014
 
+JOY1 = $4016
+JOY2 = $4017
+
 ;----------------------------------------------------------------
 ; variables
 ;----------------------------------------------------------------
@@ -50,6 +53,8 @@ OAMDMA = $4014
   ;MyVariable1 .dsb 3
 
   sprites .dsb 16
+  posx .dsb 1
+  posy .dsb 1
 
   .ende
 
@@ -121,17 +126,6 @@ LoadSpritesLoop:
   BNE LoadSpritesLoop
   RTS
 
-WriteSprite:
-  LDA #$80
-  STA $0200
-  LDA #$00
-  STA $0201
-  LDA #$00
-  STA $0202
-  LDA #$80
-  STA $0203
-  RTS
-
 RESET:
   ;NOTE: initialization code goes here
   SEI
@@ -169,8 +163,23 @@ ClearMemory:
   JSR LoadSprites
   JSR EnableRendering
 
+  LDA #$80
+  STA posx
+  STA posy
+
 Loop:
   JMP Loop
+
+WriteSprite:
+  LDA posy
+  STA $0200
+  LDA #$7F
+  STA $0201
+  LDA #$00
+  STA $0202
+  LDA posx
+  STA $0203
+  RTS
 
 NMI:
   ;NOTE: NMI code goes here
@@ -178,9 +187,60 @@ NMI:
   STA OAMADDR
   LDA #$02
   STA OAMDMA
+
+LatchControllers:
+  LDA #$01
+  STA JOY1
+  LDA #$00
+  STA JOY1
+
+  LDA JOY1 ;A
+  LDA JOY1 ;B
+  LDA JOY1 ;Select
+  LDA JOY1 ;Start
+
+ReadUp:
+  LDA JOY1 ;Up
+  AND #$00000001
+  BEQ ReadDown
+  LDA posy
+  SEC
+  SBC #$01
+  STA posy
+
+ReadDown:
+  LDA JOY1 ;Down
+  AND #$00000001
+  BEQ ReadLeft
+  LDA posy
+  CLC
+  ADC #$01
+  STA posy
+
+ReadLeft:
+  LDA JOY1 ;Left
+  AND #$00000001
+  BEQ ReadRight
+  LDA posx
+  SEC
+  SBC #$01
+  STA posx
+
+ReadRight:
+  LDA JOY1 ;Right
+  AND #$00000001
+  BEQ Done
+  LDA posx
+  CLC
+  ADC #$01
+  STA posx
+
+Done:
   JSR EnableRendering
   JSR WriteSprite
   RTI
+
+
 
 IRQ:
   ;NOTE: IRQ code goes here
