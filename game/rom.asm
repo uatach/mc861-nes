@@ -49,6 +49,8 @@ OAMDMA = $4014
   ;MyVariable0 .dsb 1
   ;MyVariable1 .dsb 3
 
+  sprites .dsb 16
+
   .ende
 
   ;NOTE: you can also split the variable declarations into individual pages, like this:
@@ -109,22 +111,26 @@ LoadPalettesLoop:
   BNE LoadPalettesLoop
   RTS
 
+LoadSprites:
+  LDX #$00
+LoadSpritesLoop:
+  LDA SpritesData,X
+  STA sprites,X
+  INX
+  CPX #$10
+  BNE LoadSpritesLoop
+  RTS
+
 WriteSprite:
   LDA #$80
   STA $0200
-  STA $0203
   LDA #$00
   STA $0201
+  LDA #$00
   STA $0202
-
+  LDA #$80
+  STA $0203
   RTS
-
-loop:
-  JMP loop
-
-;----------------------------------------------------------------
-; interrupt handlers
-;----------------------------------------------------------------
 
 RESET:
   ;NOTE: initialization code goes here
@@ -160,8 +166,11 @@ ClearMemory:
 
   JSR WaitVBlanck
   JSR LoadPalettes
+  JSR LoadSprites
   JSR EnableRendering
-  JMP loop
+
+Loop:
+  JMP Loop
 
 NMI:
   ;NOTE: NMI code goes here
@@ -187,6 +196,12 @@ PaletteData:
   .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
   ;sprite palette data
   .db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
+
+SpritesData:
+  .db $80,$32,$00,$80
+  .db $80,$33,$00,$88
+  .db $88,$34,$00,$80
+  .db $88,$35,$00,$88
 
 ;----------------------------------------------------------------
 ; interrupt vectors
