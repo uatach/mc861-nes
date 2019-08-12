@@ -75,41 +75,9 @@ OAMDMA = $4014
 
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
-Init:
-  SEI
-  CLD
-  LDX #$40
-  STX $4017
-  LDX #$FF
-  TXS
-  INX
-  STX PPUCTRL
-  STX PPUMASK
-  STX $4010
-  BIT PPUSTATUS
-  RTS
-
-InitAPU:
-  RTS
-
 WaitVBlanck:
   BIT PPUSTATUS
   BPL WaitVBlanck
-  RTS
-
-ClearMemory:
-  LDA #$00
-  STA $0000,X
-  STA $0100,X
-  STA $0300,X
-  STA $0400,X
-  STA $0500,X
-  STA $0600,X
-  STA $0700,X
-  LDA #$FE
-  STA $0200,X
-  INX
-  BNE ClearMemory
   RTS
 
 EnableRendering:
@@ -124,6 +92,9 @@ EnableRendering:
 
 LoadPalettes:
   LDA PPUSTATUS
+  LDA #$00
+  STA PPUCTRL
+  STA PPUMASK
   LDA #$3F
   STA PPUADDR
   LDA #$00
@@ -157,9 +128,36 @@ loop:
 
 RESET:
   ;NOTE: initialization code goes here
-  ;JSR Init ;FIXME: not working yet
+  SEI
+  CLD
+  LDX #$00
+  STX $4015
+  LDX #$40
+  STX $4017
+  LDX #$FF
+  TXS
+  INX
+  STX PPUCTRL
+  STX PPUMASK
+  STX $4010
+  BIT PPUSTATUS
+
   JSR WaitVBlanck
-  ;JSR ClearMemory ;FIXME: not working yet
+
+ClearMemory:
+  LDA #$00
+  STA $0000,X
+  STA $0100,X
+  STA $0300,X
+  STA $0400,X
+  STA $0500,X
+  STA $0600,X
+  STA $0700,X
+  LDA #$FE
+  STA $0200,X
+  INX
+  BNE ClearMemory
+
   JSR WaitVBlanck
   JSR LoadPalettes
   JSR EnableRendering
