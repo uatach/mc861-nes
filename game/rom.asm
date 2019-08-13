@@ -15,17 +15,17 @@
 ; constants
 ;----------------------------------------------------------------
 
-;number of PRG pages
-PRG_COUNT = 1 ;1 = 16KB, 2 = 32KB
+; number of PRG pages
+PRG_COUNT = 1 ; 1 = 16KB, 2 = 32KB
 
-;number of CHR pages
-CHR_COUNT = 1 ;1 = 8KB, 2 = 16KB
+; number of CHR pages
+CHR_COUNT = 1 ; 1 = 8KB, 2 = 16KB
 
-;TODO: explain
-;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
+; TODO: explain
+; %0000 = horizontal, %0001 = vertical, %1000 = four-screen
 MIRRORING = %0001
 
-;PPU registers
+; PPU registers
 PPUCTRL = $2000
 PPUMASK = $2001
 PPUSTATUS = $2002
@@ -33,7 +33,7 @@ PPUSCROLL = $2005
 PPUADDR = $2006
 PPUDATA = $2007
 
-;OAM registers
+; OAM registers
 OAMADDR = $2003
 OAMDATA = $2004
 OAMDMA = $4014
@@ -47,27 +47,20 @@ JOY2 = $4017
 
   .enum $0000
 
-  ;NOTE: declare variables using the DSB and DSW directives, like this:
+  ; NOTE: declare variables using the DSB and DSW directives
 
-  ;MyVariable0 .dsb 1
-  ;MyVariable1 .dsb 3
-
+  ; TODO: explain
   sprites .dsb 16
-  posx .dsb 1
-  posy .dsb 1
 
+  ; holds controllers data
   controller1 .dsb 1
   controller2 .dsb 1
 
+  ; TODO: remove
+  posx .dsb 1
+  posy .dsb 1
+
   .ende
-
-  ;NOTE: you can also split the variable declarations into individual pages, like this:
-
-  ;.enum $0100
-  ;.ende
-
-  ;.enum $0200
-  ;.ende
 
 ;----------------------------------------------------------------
 ; iNES header
@@ -85,12 +78,18 @@ JOY2 = $4017
 
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
-WaitVBlanck:
+; aux routines
+
+; waits ppu to be ready
+WaitVBlank:
   BIT PPUSTATUS
-  BPL WaitVBlanck
+  BPL WaitVBlank
   RTS
 
+; set ppu registers before drawing anything
 EnableRendering:
+  ; following values explained at:
+  ;  http://wiki.nesdev.com/w/index.php/PPU_registers
   LDA #%10010000
   STA PPUCTRL
   LDA #%00011110
@@ -100,23 +99,37 @@ EnableRendering:
   STA PPUSCROLL
   RTS
 
+; TODO: remove
+WriteSprite:
+  LDA posy
+  STA $0200
+  LDA #$7F
+  STA $0201
+  LDA #$00
+  STA $0202
+  LDA posx
+  STA $0203
+  RTS
+
+
 RESET:
-  ;NOTE: initialization code goes here
+  ; init code based on:
+  ;  http://wiki.nesdev.com/w/index.php/Init_code
   SEI             ; disable IRQs
   CLD             ; disable decimal mode
   LDX #$00
   STX $4015
   LDX #$40
-  STX $4017
+  STX $4017       ; disable APU IRQ
   LDX #$FF
   TXS             ; set up stack
   INX
   STX PPUCTRL     ; disable NMI
   STX PPUMASK     ; disable rendering
-  STX $4010       ; disable DMC
-  BIT PPUSTATUS   ; clean up
+  STX $4010       ; disable DMC IRQ
+  BIT PPUSTATUS   ; clean up vblank
 
-  JSR WaitVBlanck
+  JSR WaitVBlank
 
   ; X = 0
 ClearMemory:      ; setup ram
@@ -133,13 +146,13 @@ ClearMemory:      ; setup ram
   INX
   BNE ClearMemory
 
-  JSR WaitVBlanck
+  JSR WaitVBlank
+  ; end of init code
+
+; start loading data into ram and ppu memory
 
 LoadPalettes:
-  LDA PPUSTATUS
-  LDA #$00
-  STA PPUCTRL
-  STA PPUMASK
+  LDA PPUSTATUS       ; reset latch
   LDA #$3F
   STA PPUADDR
   LDA #$00
@@ -178,7 +191,7 @@ LoadBackgroundLoop:
   BNE LoadBackgroundLoop
 
 LoadAttribute:
-  LDA PPUSTATUS
+  LDA PPUSTATUS       ; reset latch
   LDA #$23
   STA PPUADDR
   LDA #$C0
@@ -194,23 +207,15 @@ LoadAttributeLoop:
 
   JSR EnableRendering
 
+  ; init variables
   LDA #$80
   STA posx
   STA posy
 
 Loop:
+  ; waits for NMI IRQs
   JMP Loop
 
-WriteSprite:
-  LDA posy
-  STA $0200
-  LDA #$7F
-  STA $0201
-  LDA #$00
-  STA $0202
-  LDA posx
-  STA $0203
-  RTS
 
 NMI:
   ;NOTE: NMI code goes here
@@ -241,6 +246,8 @@ ReadController2Loop:
   DEX
   BNE ReadController2Loop
 
+
+; TODO: improve
 HandleUp:
   LDA controller1
   AND #%00001000
@@ -283,9 +290,7 @@ Done:
   RTI
 
 
-
 IRQ:
-  ;NOTE: IRQ code goes here
   RTI
 
 ;----------------------------------------------------------------
@@ -304,12 +309,12 @@ PaletteData:
   .db $22,$1C,$15,$14,$22,$02,$38,$3C,$22,$1C,$15,$14,$22,$02,$38,$3C
 
 
-
 SpritesData:
   .db $80,$32,$00,$80
   .db $80,$33,$00,$88
   .db $88,$34,$00,$80
   .db $88,$35,$00,$88
+
 
 BackgroundData:
   .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 1
@@ -324,10 +329,12 @@ BackgroundData:
   .db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
   .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
 
+
 AttributeData:
   .db %00000000, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
 
   .db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
+
 
 ;----------------------------------------------------------------
 ; interrupt vectors
