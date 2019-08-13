@@ -38,6 +38,12 @@ OAMADDR = $2003
 OAMDATA = $2004
 OAMDMA = $4014
 
+; APU registers
+APUFLAGS = $4015
+SQ1_ENV = $4000
+SQ1_LO  = $4002
+SQ1_HI = $4003
+
 JOY1 = $4016
 JOY2 = $4017
 
@@ -145,6 +151,19 @@ ClearMemory:      ; setup ram
   STA $0200,X
   INX
   BNE ClearMemory
+
+  ; setup APU
+  LDA #$0F
+  STA APUFLAGS
+
+  ; TODO: remove
+  ; eternal beep
+  LDA #%10111111
+  STA SQ1_ENV
+  LDA #$C9
+  STA SQ1_LO
+  LDA #$00
+  STA SQ1_HI
 
   JSR WaitVBlank
   ; end of init code
