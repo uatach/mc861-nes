@@ -57,7 +57,7 @@ JOY2 = $4017
   posy .dsb 1
 
   controller1 .dsb 1
-  controller2 .dsb 2
+  controller2 .dsb 1
 
   .ende
 
@@ -100,6 +100,41 @@ EnableRendering:
   STA PPUSCROLL
   RTS
 
+RESET:
+  ;NOTE: initialization code goes here
+  SEI             ; disable IRQs
+  CLD             ; disable decimal mode
+  LDX #$00
+  STX $4015
+  LDX #$40
+  STX $4017
+  LDX #$FF
+  TXS             ; set up stack
+  INX
+  STX PPUCTRL     ; disable NMI
+  STX PPUMASK     ; disable rendering
+  STX $4010       ; disable DMC
+  BIT PPUSTATUS   ; clean up
+
+  JSR WaitVBlanck
+
+  ; X = 0
+ClearMemory:      ; setup ram
+  LDA #$00
+  STA $0000,X
+  STA $0100,X
+  STA $0300,X
+  STA $0400,X
+  STA $0500,X
+  STA $0600,X
+  STA $0700,X
+  LDA #$FE
+  STA $0200,X
+  INX
+  BNE ClearMemory
+
+  JSR WaitVBlanck
+
 LoadPalettes:
   LDA PPUSTATUS
   LDA #$00
@@ -117,7 +152,6 @@ LoadPalettesLoop:
   INX
   CPX #$20
   BNE LoadPalettesLoop
-  RTS
 
 LoadSprites:
   LDX #$00
@@ -127,43 +161,37 @@ LoadSpritesLoop:
   INX
   CPX #$10
   BNE LoadSpritesLoop
-  RTS
 
-RESET:
-  ;NOTE: initialization code goes here
-  SEI
-  CLD
-  LDX #$00
-  STX $4015
-  LDX #$40
-  STX $4017
-  LDX #$FF
-  TXS
-  INX
-  STX PPUCTRL
-  STX PPUMASK
-  STX $4010
-  BIT PPUSTATUS
-
-  JSR WaitVBlanck
-
-ClearMemory:
+LoadBackground:
+  LDA PPUSTATUS       ; reset latch
+  LDA #$20
+  STA PPUADDR
   LDA #$00
-  STA $0000,X
-  STA $0100,X
-  STA $0300,X
-  STA $0400,X
-  STA $0500,X
-  STA $0600,X
-  STA $0700,X
-  LDA #$FE
-  STA $0200,X
-  INX
-  BNE ClearMemory
+  STA PPUADDR
 
-  JSR WaitVBlanck
-  JSR LoadPalettes
-  JSR LoadSprites
+  LDX #$00
+LoadBackgroundLoop:
+  LDA BackgroundData,X
+  STA PPUDATA
+  INX
+  CPX #$80
+  BNE LoadBackgroundLoop
+
+LoadAttribute:
+  LDA PPUSTATUS
+  LDA #$23
+  STA PPUADDR
+  LDA #$C0
+  STA PPUADDR
+
+  LDX #$00
+LoadAttributeLoop:
+  LDA AttributeData,X
+  STA PPUDATA
+  INX
+  CPX #$08
+  BNE LoadAttributeLoop
+
   JSR EnableRendering
 
   LDA #$80
@@ -263,19 +291,43 @@ IRQ:
 ;----------------------------------------------------------------
 ; data
 ;----------------------------------------------------------------
+  
+  .org $E000
 
 ; palettes from tutorial
 PaletteData:
   ;background palette data
-  .db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
+  ;.db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F
+  .db $22,$29,$1A,$0F,$22,$36,$17,$0F,$22,$30,$21,$0F,$22,$27,$17,$0F
   ;sprite palette data
-  .db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
+  ;.db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
+  .db $22,$1C,$15,$14,$22,$02,$38,$3C,$22,$1C,$15,$14,$22,$02,$38,$3C
+
+
 
 SpritesData:
   .db $80,$32,$00,$80
   .db $80,$33,$00,$88
   .db $88,$34,$00,$80
   .db $88,$35,$00,$88
+
+BackgroundData:
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 1
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+
+  .db $24,$24,$24,$24,$45,$45,$24,$24,$45,$45,$45,$45,$45,$45,$24,$24  ;;row 3
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$53,$54,$24,$24  ;;some brick tops
+
+  .db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
+  .db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
+
+AttributeData:
+  .db %00000000, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
+
+  .db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
 
 ;----------------------------------------------------------------
 ; interrupt vectors
