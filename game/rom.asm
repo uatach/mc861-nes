@@ -161,12 +161,12 @@ ClearMemory:      ; setup ram
 
   ; TODO: remove
   ; eternal beep
-  LDA #%10111111
-  STA SQ1_ENV
-  LDA #$C9
-  STA SQ1_LO
-  LDA #$00
-  STA SQ1_HI
+  ;LDA #%10111111
+  ;STA SQ1_ENV
+  ;LDA #$C9
+  ;STA SQ1_LO
+  ;LDA #$00
+  ;STA SQ1_HI
 
   JSR WaitVBlank
   ; end of init code
@@ -283,6 +283,7 @@ ReadController2Loop:
 
 ; TODO: improve
 HandleUp:
+
   LDA controller1
   AND #%00001000
   BEQ HandleDown
