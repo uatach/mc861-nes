@@ -43,6 +43,13 @@ APUFLAGS = $4015
 SQ1_ENV = $4000
 SQ1_LO  = $4002
 SQ1_HI = $4003
+SQ2_ENV = $4004
+SQ2_SWEEP = $4005
+SQ2_LO  = $4006
+SQ2_HI = $4007
+TRI_CTRL = $4008
+TRI_LO = $400A
+TRI_HI = $400B
 
 JOY1 = $4016
 JOY2 = $4017
@@ -161,12 +168,7 @@ ClearMemory:      ; setup ram
 
   ; TODO: remove
   ; eternal beep
-  ;LDA #%10111111
-  ;STA SQ1_ENV
-  ;LDA #$C9
-  ;STA SQ1_LO
-  ;LDA #$00
-  ;STA SQ1_HI
+
 
   JSR WaitVBlank
   ; end of init code
@@ -331,7 +333,7 @@ IRQ:
 ;----------------------------------------------------------------
 ; data
 ;----------------------------------------------------------------
-  
+
   .org $E000
 
 ; palettes from tutorial
