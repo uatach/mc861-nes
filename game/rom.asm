@@ -2,6 +2,9 @@
 ;---------------------------------------------------------------
 ; memory sections / sizes
 ; $0000-07FF -  2KB - Internal RAM, chip in the NES
+;   $0000-00FF - 256KB - Page zero
+;   $0100-01FF - 256KB - Stack
+;   $0200-02FF - 256KB - Sprites
 ; $0800-1FFF -  6KB - RAM Mirrors
 ; $2000-2007 -  1B  - PPU access ports
 ; $3F00-3F0F -  2B  - PPU background palette
@@ -57,6 +60,11 @@ TRI_HI = $400B
 JOY1 = $4016
 JOY2 = $4017
 
+; stack grows from $01FF to $0100
+; TSX gives relative position from $0100
+STACK = $0100
+
+; sprite data that is transfered to PPU at the start of every NMI
 SPRITES = $0200
 
 ;----------------------------------------------------------------
@@ -65,14 +73,14 @@ SPRITES = $0200
 
   .enum $0000
 
-  ; NOTE: declare variables using the DSB and DSW directives
-
   pointerLo .dsb 1
   pointerHi .dsb 1
 
   ; holds controllers data
   controller1 .dsb 1
   controller2 .dsb 1
+
+  mushrooms .dsb 84
 
   ; TODO: remove
   posx .dsb 1
@@ -118,16 +126,47 @@ EnableRendering:
   STA PPUSCROLL
   RTS
 
-; TODO: remove
-WriteSprite:
-  LDA posy
-  STA $0210
-  LDA #$7F
-  STA $0211
-  LDA #$00
-  STA $0212
-  LDA posx
-  STA $0213
+; clears sprite data from address received on the stack
+ClearSprite:
+  TSX             ; get stack pointer
+  INX
+  INX             ; skips return address
+  INX
+  LDA STACK,X     ; load sprite address
+  TAX
+  LDA #$FE        ; load default value
+  STA SPRITES,X
+  INX
+  STA SPRITES,X
+  INX
+  STA SPRITES,X
+  INX
+  STA SPRITES,X
+  RTS
+
+; stores sprite data into addres received on the stack
+StoreSprite:
+  TSX             ; get stack pointer
+  INX
+  INX             ; skips return address
+  INX
+  LDA STACK,X     ; load sprite address
+  TAY
+  INX
+  LDA STACK,X     ; load sprite y position
+  STA SPRITES,Y
+  INX
+  LDA STACK,X     ; load sprite index
+  INY
+  STA SPRITES,Y
+  INX
+  LDA STACK,X     ; load sprite attrs
+  INY
+  STA SPRITES,Y
+  INX
+  LDA STACK,X     ; load sprite x position
+  INY
+  STA SPRITES,Y
   RTS
 
 
@@ -171,28 +210,28 @@ ClearMemory:      ; setup ram
 
   ; eternal beep
   ;Square 1
-  LDA #%00111000  ;Duty 00, Volume 8 (half volume)
-  STA $4000
-  LDA #$C9        ;$0C9 is a C# in NTSC mode
-  STA $4002       ;low 8 bits of period
-  LDA #$00
-  STA $4003       ;high 3 bits of period
+  ;LDA #%00111000  ;Duty 00, Volume 8 (half volume)
+  ;STA $4000
+  ;LDA #$C9        ;$0C9 is a C# in NTSC mode
+  ;STA $4002       ;low 8 bits of period
+  ;LDA #$00
+  ;STA $4003       ;high 3 bits of period
 
-  ;Square 2
-  LDA #%01110110  ;Duty 01, Volume 6
-  STA $4004
-  LDA #$E9        ;$0A9 is an E in NTSC mode
-  STA $4006
-  LDA #$00
-  STA $4007
+  ;;Square 2
+  ;LDA #%01110110  ;Duty 01, Volume 6
+  ;STA $4004
+  ;LDA #$E9        ;$0A9 is an E in NTSC mode
+  ;STA $4006
+  ;LDA #$00
+  ;STA $4007
 
-  ;Triangle
-  LDA #%10000001  ;Triangle channel on
-  STA $4008
-  LDA #$42        ;$042 is a G# in NTSC mode
-  STA $400A
-  LDA #$00
-  STA $400B
+  ;;Triangle
+  ;LDA #%10000001  ;Triangle channel on
+  ;STA $4008
+  ;LDA #$42        ;$042 is a G# in NTSC mode
+  ;STA $400A
+  ;LDA #$00
+  ;STA $400B
 
   JSR WaitVBlank
   ; end of init code
@@ -265,15 +304,13 @@ LoadAttributeLoop:
   CPX #$40
   BNE LoadAttributeLoop
 
-  JSR EnableRendering
-
   ; init variables
   LDA #$80
   STA posx
   STA posy
 
-  LDA #$00
-  STA counter
+  ; last step, enables NMI
+  JSR EnableRendering
 
 Loop:
   ; waits for NMI IRQs
@@ -309,9 +346,42 @@ ReadController2Loop:
   DEX
   BNE ReadController2Loop
 
-  JSR WriteSprite
-
 ; TODO: improve
+HandleA:
+  LDA controller1
+  AND #%10000000
+  BEQ HandleB
+
+  ; disables sprite
+  LDA #$24
+  PHA
+  JSR ClearSprite
+  PLA
+
+HandleB:
+  LDA controller1
+  AND #%01000000
+  BEQ HandleUp
+
+  ; enables sprite
+  LDA #$20
+  PHA
+  LDA #$00
+  PHA
+  LDA #$7F
+  PHA
+  LDA #$20
+  PHA
+  LDA #$24
+  PHA
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
+
 HandleUp:
   LDA controller1
   AND #%00001000
@@ -335,7 +405,7 @@ HandleDown:
   AND #%00000100
   BEQ HandleLeft
   
-  LDA #%10000000  ;Triangle channel on
+  LDA #%10000000  ;Triangle channel off
   STA $4008
   LDA #$42        ;$042 is a G# in NTSC mode
   STA $400A
@@ -369,7 +439,7 @@ HandleRight:
   AND #%00000001
   BEQ UpdateSprites
 
-   LDA #%10000001  ;Triangle channel on
+  LDA #%10000001  ;Triangle channel on
   STA $4008
   LDA #$36        ;$042 is a G# in NTSC mode
   STA $400A
@@ -381,6 +451,7 @@ HandleRight:
   CLC
   ADC #$01
   STA posx
+
 
 UpdateSprites:
   INC counter
@@ -401,9 +472,25 @@ UpdateSpritesLoop:
   BNE UpdateSpritesLoop
 
 Done:
+  LDA posx
+  PHA
+  LDA #$00
+  PHA
+  LDA #$7F
+  PHA
+  LDA posy
+  PHA
+  LDA #$20
+  PHA
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
   JSR EnableRendering
   RTI
-
 
 IRQ:
   RTI
@@ -425,10 +512,10 @@ PaletteData:
 
 
 SpritesData:
-  .db $00,$76,$00,$71
-  .db $00,$77,$00,$79
-  .db $08,$78,$00,$71
-  .db $08,$79,$00,$79
+  .db $00,$76,$00,$70
+  .db $00,$77,$00,$78
+  .db $08,$78,$00,$70
+  .db $08,$79,$00,$78
 
 
 BackgroundData:
