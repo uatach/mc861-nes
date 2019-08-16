@@ -15,6 +15,9 @@
 ; constants
 ;----------------------------------------------------------------
 
+; include engine de som
+.include "sound_engine.asm"
+
 ; number of PRG pages
 PRG_COUNT = 1 ; 1 = 16KB, 2 = 32KB
 
