@@ -16,7 +16,7 @@
 ;----------------------------------------------------------------
 
 ; include engine de som
-.include "sound_engine.asm"
+;.include "sound_engine.asm"
 
 ; number of PRG pages
 PRG_COUNT = 1 ; 1 = 16KB, 2 = 32KB
@@ -40,6 +40,19 @@ PPUDATA = $2007
 OAMADDR = $2003
 OAMDATA = $2004
 OAMDMA = $4014
+
+; APU registers
+APUFLAGS = $4015
+SQ1_ENV = $4000
+SQ1_LO  = $4002
+SQ1_HI = $4003
+SQ2_ENV = $4004
+SQ2_SWEEP = $4005
+SQ2_LO  = $4006
+SQ2_HI = $4007
+TRI_CTRL = $4008
+TRI_LO = $400A
+TRI_HI = $400B
 
 JOY1 = $4016
 JOY2 = $4017
@@ -155,7 +168,7 @@ ClearMemory:      ; setup ram
   ; setup APU
   LDA #$0F
   STA APUFLAGS
-  
+
   ; eternal beep
   ;Square 1
   LDA #%00111000  ;Duty 00, Volume 8 (half volume)
