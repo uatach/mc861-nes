@@ -54,6 +54,8 @@ TRI_HI = $400B
 JOY1 = $4016
 JOY2 = $4017
 
+SPRITES = $0200
+
 ;----------------------------------------------------------------
 ; variables
 ;----------------------------------------------------------------
@@ -65,9 +67,6 @@ JOY2 = $4017
   pointerLo .dsb 1
   pointerHi .dsb 1
 
-  ; TODO: explain
-  sprites .dsb 16
-
   ; holds controllers data
   controller1 .dsb 1
   controller2 .dsb 1
@@ -75,6 +74,7 @@ JOY2 = $4017
   ; TODO: remove
   posx .dsb 1
   posy .dsb 1
+  counter .dsb 1
 
   .ende
 
@@ -118,13 +118,13 @@ EnableRendering:
 ; TODO: remove
 WriteSprite:
   LDA posy
-  STA $0200
+  STA $0210
   LDA #$7F
-  STA $0201
+  STA $0211
   LDA #$00
-  STA $0202
+  STA $0212
   LDA posx
-  STA $0203
+  STA $0213
   RTS
 
 
@@ -216,7 +216,7 @@ LoadSprites:
   LDX #$00
 LoadSpritesLoop:
   LDA SpritesData,X
-  STA sprites,X
+  STA SPRITES,X
   INX
   CPX #$10
   BNE LoadSpritesLoop
@@ -270,6 +270,9 @@ LoadAttributeLoop:
   STA posx
   STA posy
 
+  LDA #$00
+  STA counter
+
 Loop:
   ; waits for NMI IRQs
   JMP Loop
@@ -277,9 +280,9 @@ Loop:
 
 NMI:
   ;NOTE: NMI code goes here
-  LDA #$00
+  LDA #<SPRITES
   STA OAMADDR
-  LDA #$02
+  LDA #>SPRITES
   STA OAMDMA
 
 LatchControllers:
@@ -304,10 +307,10 @@ ReadController2Loop:
   DEX
   BNE ReadController2Loop
 
+  JSR WriteSprite
 
 ; TODO: improve
 HandleUp:
-
   LDA controller1
   AND #%00001000
   BEQ HandleDown
@@ -337,15 +340,33 @@ HandleLeft:
 HandleRight:
   LDA controller1
   AND #%00000001
-  BEQ Done
+  BEQ UpdateSprites
   LDA posx
   CLC
   ADC #$01
   STA posx
 
+UpdateSprites:
+  INC counter
+  LDA counter
+  CMP #$00
+  BNE Done
+
+  LDX #$00
+UpdateSpritesLoop:
+  LDA SPRITES,X
+  CLC
+  ADC #$10
+  STA SPRITES,X
+  TXA
+  ADC #$04
+  TAX
+  CPX #$10
+  BNE UpdateSpritesLoop
+
+
 Done:
   JSR EnableRendering
-  JSR WriteSprite
   RTI
 
 
@@ -369,10 +390,10 @@ PaletteData:
 
 
 SpritesData:
-  .db $80,$32,$00,$80
-  .db $80,$33,$00,$88
-  .db $88,$34,$00,$80
-  .db $88,$35,$00,$88
+  .db $00,$76,$00,$71
+  .db $00,$77,$00,$79
+  .db $08,$78,$00,$71
+  .db $08,$79,$00,$79
 
 
 BackgroundData:
@@ -497,14 +518,14 @@ BackgroundData:
   .db $B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7
 
 AttributeData:
-  .db %00000000, %00000000, %01010000, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %00000000, %00000000, %00011001, %00101000, %01010000, %01010000, %00000000, %00000000
-  .db %01010101, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %10101010, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %11111111, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %00000000, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %00000000, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
-  .db %00000000, %00000000, %01010001, %01010000, %01010000, %01010000, %00000000, %00000000
+  .db %00000000, %00000000, %00010000, %00000000, %00000000, %01000000, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
+  .db %00000101, %00000101, %00000101, %00000101, %00000101, %01000101, %00000101, %00000101
 
 
 ;----------------------------------------------------------------
