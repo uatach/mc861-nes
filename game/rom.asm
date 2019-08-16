@@ -181,7 +181,7 @@ ClearMemory:      ; setup ram
   ;Square 2
   LDA #%01110110  ;Duty 01, Volume 6
   STA $4004
-  LDA #$A9        ;$0A9 is an E in NTSC mode
+  LDA #$E9        ;$0A9 is an E in NTSC mode
   STA $4006
   LDA #$00
   STA $4007
@@ -316,6 +316,15 @@ HandleUp:
   LDA controller1
   AND #%00001000
   BEQ HandleDown
+  
+  LDA #%10000001  ;Triangle channel on
+  STA $4008
+  LDA #$44        ;$042 is a G# in NTSC mode
+  STA $400A
+  LDA #$00
+  STA $400B
+  
+  
   LDA posy
   SEC
   SBC #$01
@@ -325,6 +334,14 @@ HandleDown:
   LDA controller1
   AND #%00000100
   BEQ HandleLeft
+  
+  LDA #%10000000  ;Triangle channel on
+  STA $4008
+  LDA #$42        ;$042 is a G# in NTSC mode
+  STA $400A
+  LDA #$00
+  STA $400B
+  
   LDA posy
   CLC
   ADC #$01
@@ -334,6 +351,14 @@ HandleLeft:
   LDA controller1
   AND #%00000010
   BEQ HandleRight
+
+  LDA #%10000001  ;Triangle channel on
+  STA $4008
+  LDA #$32        ;$038 is a G# in NTSC mode
+  STA $400A
+  LDA #$00
+  STA $400B
+  
   LDA posx
   SEC
   SBC #$01
@@ -343,6 +368,15 @@ HandleRight:
   LDA controller1
   AND #%00000001
   BEQ UpdateSprites
+
+   LDA #%10000001  ;Triangle channel on
+  STA $4008
+  LDA #$36        ;$042 is a G# in NTSC mode
+  STA $400A
+  LDA #$00
+  STA $400B
+ 
+
   LDA posx
   CLC
   ADC #$01
@@ -365,7 +399,6 @@ UpdateSpritesLoop:
   TAX
   CPX #$10
   BNE UpdateSpritesLoop
-
 
 Done:
   JSR EnableRendering
@@ -530,6 +563,40 @@ AttributeData:
   .db %00000101, %00000101, %00000101, %00000101, %00000101, %01000101, %00000101, %00000101
 
 
+;-------------------------------------------------------------------------------------------------------------------------------------;
+;--------------------------------------- Tabela de notas -----------------------------------------------------------------------------;
+;-------------------------------------------------------------------------------------------------------------------------------------;
+;Note: octaves in music traditionally start from C, not A.  
+;      I've adjusted my octave numbers to reflect this.
+note_table:
+    .word                                                                $07F1, $0780, $0713 ; A1-B1 ($00-$02)
+    .word $06AD, $064D, $05F3, $059D, $054D, $0500, $04B8, $0475, $0435, $03F8, $03BF, $0389 ; C2-B2 ($03-$0E)
+    .word $0356, $0326, $02F9, $02CE, $02A6, $027F, $025C, $023A, $021A, $01FB, $01DF, $01C4 ; C3-B3 ($0F-$1A)
+    .word $01AB, $0193, $017C, $0167, $0151, $013F, $012D, $011C, $010C, $00FD, $00EF, $00E2 ; C4-B4 ($1B-$26)
+    .word $00D2, $00C9, $00BD, $00B3, $00A9, $009F, $0096, $008E, $0086, $007E, $0077, $0070 ; C5-B5 ($27-$32)
+    .word $006A, $0064, $005E, $0059, $0054, $004F, $004B, $0046, $0042, $003F, $003B, $0038 ; C6-B6 ($33-$3E)
+    .word $0034, $0031, $002F, $002C, $0029, $0027, $0025, $0023, $0021, $001F, $001D, $001B ; C7-B7 ($3F-$4A)
+    .word $001A, $0018, $0017, $0015, $0014, $0013, $0012, $0011, $0010, $000F, $000E, $000D ; C8-B8 ($4B-$56)
+    .word $000C, $000C, $000B, $000A, $000A, $0009, $0008                                    ; C9-F#9 ($57-$5D)
+
+    ;Note: octaves in music traditionally start at C, not A
+
+;Octave 1
+A1 = $00    ;"1" means octave 1.
+As1 = $01   ;"s" means "sharp"
+Bb1 = $01   ;"b" means "flat".  A# == Bb
+B1 = $02
+
+;Octave 2
+C2 = $03
+Cs2 = $04
+Db2 = $04
+D2 = $05
+;...
+A2 = $0C
+As2 = $0D
+Bb2 = $0D
+B2 = $0E
 ;----------------------------------------------------------------
 ; interrupt vectors
 ;----------------------------------------------------------------
