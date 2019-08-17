@@ -128,7 +128,10 @@ EnableRendering:
 
 ; clears sprite data from address received on the stack
 ClearSprite:
+  TXA
+  PHA
   TSX             ; get stack pointer
+  INX
   INX
   INX             ; skips return address
   INX
@@ -142,11 +145,19 @@ ClearSprite:
   STA SPRITES,X
   INX
   STA SPRITES,X
+  PLA
+  TAX
   RTS
 
 ; stores sprite data into addres received on the stack
 StoreSprite:
+  TXA             ; store regs on stack
+  PHA
+  TYA
+  PHA
   TSX             ; get stack pointer
+  INX
+  INX
   INX
   INX             ; skips return address
   INX
@@ -167,6 +178,10 @@ StoreSprite:
   LDA STACK,X     ; load sprite x position
   INY
   STA SPRITES,Y
+  PLA             ; restore regs from stack
+  TAY
+  PLA
+  TAX
   RTS
 
 
@@ -200,7 +215,7 @@ ClearMemory:      ; setup ram
   STA $0600,X
   STA $0700,X
   LDA #$FE
-  STA $0200,X
+  STA SPRITES,X
   INX
   BNE ClearMemory
 
@@ -508,7 +523,8 @@ PaletteData:
   .db $22,$29,$1A,$0F,$22,$36,$17,$0F,$22,$30,$21,$0F,$22,$27,$17,$0F
   ;sprite palette data
   ;.db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C
-  .db $22,$1C,$15,$14,$22,$02,$38,$3C,$22,$1C,$15,$14,$22,$02,$38,$3C
+  ;.db $22,$1C,$15,$14,$22,$02,$38,$3C,$22,$1C,$15,$14,$22,$02,$38,$3C
+  .db $22,$15,$37,$27,$22,$02,$38,$3C,$22,$1C,$15,$14,$22,$02,$38,$3C
 
 
 SpritesData:
