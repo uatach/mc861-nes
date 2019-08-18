@@ -185,6 +185,151 @@ StoreSprite:
   TAX
   RTS
 
+StoreMushroomSprites:
+  TXA
+  PHA
+  TSX
+  TXA
+  CLC
+  ADC #$07
+  TAX
+
+  ; mushroom bottom right
+  LDA STACK,X     ; x position
+  CLC
+  ADC #$08
+  PHA
+
+  DEX
+  LDA STACK,X     ; attrs
+  PHA
+
+  LDA #$79        ; sprite
+  PHA
+
+  DEX
+  LDA STACK,X     ; y position
+  CLC
+  ADC #$08
+  PHA
+
+  DEX
+  LDA STACK,X     ; sprite index
+  CLC
+  ADC #$0C
+  PHA
+
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
+  INX
+  INX
+  INX
+
+  ; mushroom bottom left
+  LDA STACK,X     ; x position
+  PHA
+
+  DEX
+  LDA STACK,X     ; attrs
+  PHA
+
+  LDA #$78        ; sprite
+  PHA
+
+  DEX
+  LDA STACK,X     ; y position
+  CLC
+  ADC #$08
+  PHA
+
+  DEX
+  LDA STACK,X     ; sprite index
+  CLC
+  ADC #$08
+  PHA
+
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
+  INX
+  INX
+  INX
+
+  ; mushroom top right
+  LDA STACK,X     ; x position
+  CLC
+  ADC #$08
+  PHA
+
+  DEX
+  LDA STACK,X     ; attrs
+  PHA
+
+  LDA #$77        ; sprite
+  PHA
+
+  DEX
+  LDA STACK,X     ; y position
+  PHA
+
+  DEX
+  LDA STACK,X     ; sprite index
+  CLC
+  ADC #$04
+  PHA
+
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
+  INX
+  INX
+  INX
+
+  ; mushroom top left
+  LDA STACK,X     ; x position
+  PHA
+
+  DEX
+  LDA STACK,X     ; attrs
+  PHA
+
+  LDA #$76        ; sprite
+  PHA
+
+  DEX
+  LDA STACK,X     ; y position
+  PHA
+
+  DEX
+  LDA STACK,X     ; sprite index
+  PHA
+
+  JSR StoreSprite
+  PLA
+  PLA
+  PLA
+  PLA
+  PLA
+
+  PLA
+  TAX
+  RTS
+
+;----------------------------------------------------------------
+;----------------------------------------------------------------
 
 RESET:
   ; init code based on:
@@ -313,6 +458,7 @@ LoadAttributeLoop:
   CPX #$40
   BNE LoadAttributeLoop
 
+
   ; init variables
   LDA #$80
   STA posx
@@ -364,7 +510,7 @@ HandleA:
   BEQ HandleB
 
   ; disables sprite
-  LDA #$24
+  LDA #$40
   PHA
   JSR ClearSprite
   PLA
@@ -375,7 +521,7 @@ HandleB:
   BEQ HandleUp
 
   ; enables sprite
-  LDA #$20
+  LDA #$30
   PHA
   LDA #$00
   PHA
@@ -383,7 +529,7 @@ HandleB:
   PHA
   LDA #$20
   PHA
-  LDA #$24
+  LDA #$40
   PHA
   JSR StoreSprite
   PLA
@@ -469,14 +615,11 @@ UpdateSprites:
   PHA
   LDA #$00
   PHA
-  LDA #$7F
-  PHA
   LDA posy
   PHA
   LDA #$20
   PHA
-  JSR StoreSprite
-  PLA
+  JSR StoreMushroomSprites
   PLA
   PLA
   PLA
