@@ -104,7 +104,9 @@ SPRITES = $0200
 
   .base $10000-(PRG_COUNT*$4000) ; aka $8000 or $C000
 
+;----------------------------------------------------------------
 ; aux routines
+;----------------------------------------------------------------
 
 ; waits ppu to be ready
 WaitVBlank:
@@ -267,14 +269,6 @@ LoadPalettesLoop:
   CPX #$20
   BNE LoadPalettesLoop
 
-LoadSprites:
-  LDX #$00
-LoadSpritesLoop:
-  LDA SpritesData,X
-  STA SPRITES,X
-  INX
-  CPX #$10
-  BNE LoadSpritesLoop
 
 LoadBackground:
   LDA PPUSTATUS       ; reset latch
@@ -303,6 +297,7 @@ LoadBackgroundInsideLoop:
   CPX #$04
   BNE LoadBackgroundOutsideLoop
 
+
 LoadAttribute:
   LDA PPUSTATUS       ; reset latch
   LDA #$23
@@ -330,6 +325,8 @@ Loop:
   ; waits for NMI IRQs
   JMP Loop
 
+;----------------------------------------------------------------
+;----------------------------------------------------------------
 
 NMI:
   ;NOTE: NMI code goes here
@@ -468,24 +465,6 @@ HandleRight:
 
 
 UpdateSprites:
-  INC counter
-  LDA counter
-  CMP #$00
-  BNE Done
-
-  LDX #$00
-UpdateSpritesLoop:
-  LDA SPRITES,X
-  CLC
-  ADC #$10
-  STA SPRITES,X
-  TXA
-  ADC #$04
-  TAX
-  CPX #$10
-  BNE UpdateSpritesLoop
-
-Done:
   LDA posx
   PHA
   LDA #$00
@@ -505,6 +484,9 @@ Done:
 
   JSR EnableRendering
   RTI
+
+;----------------------------------------------------------------
+;----------------------------------------------------------------
 
 IRQ:
   RTI
