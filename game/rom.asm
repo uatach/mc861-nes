@@ -1,9 +1,9 @@
 ;---------------------------------------------------------------
 ; memory sections / sizes
 ; $0000-07FF -  2KB - Internal RAM, chip in the NES
-;   $0000-00FF - 256KB - Page zero
-;   $0100-01FF - 256KB - Stack
-;   $0200-02FF - 256KB - Sprites
+;   $0000-00FF - 256B - Page zero
+;   $0100-01FF - 256B - Stack
+;   $0200-02FF - 256B - Sprites
 ; $0800-1FFF -  6KB - RAM Mirrors
 ; $2000-2007 -  1B  - PPU access ports
 ; $3F00-3F0F -  2B  - PPU background palette
@@ -383,11 +383,11 @@ RESET:
 
   JSR WaitVBlank
 
-  ; X = 0
+  LDX #$00
 ClearMemory:      ; setup ram
   LDA #$00
   STA $0000,X
-  STA $0100,X
+  STA STACK,X
   STA $0300,X
   STA $0400,X
   STA $0500,X
@@ -513,6 +513,42 @@ NMI:
   STA OAMADDR
   LDA #>SPRITES
   STA OAMDMA
+
+Test:
+  LDA PPUSTATUS       ; reset latch
+  LDA #$20
+  STA PPUADDR
+  LDA #$50
+  STA PPUADDR
+
+  LDA posx
+  ROR A
+  ROR A
+  ROR A
+  ROR A
+  AND #$0F
+  STA PPUDATA
+
+  LDA posx
+  AND #$0F
+  STA PPUDATA
+
+  LDA #$24
+  STA PPUDATA
+
+  LDA posy
+  ROR A
+  ROR A
+  ROR A
+  ROR A
+  AND #$0F
+  STA PPUDATA
+
+  LDA posy
+  AND #$0F
+  STA PPUDATA
+
+  JSR EnableRendering
 
 LatchControllers:
   LDA #$01
