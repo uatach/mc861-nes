@@ -185,6 +185,39 @@ StoreSprite:
   TAX
   RTS
 
+
+ClearMushroomSprites:
+  TXA
+  PHA
+  TSX
+  INX
+  INX
+  INX
+  INX
+  LDA STACK,X     ; load address
+  PHA
+  JSR ClearSprite
+  PLA
+  CLC
+  ADC #$04        ; next address
+  PHA
+  JSR ClearSprite
+  PLA
+  CLC
+  ADC #$04        ; next address
+  PHA
+  JSR ClearSprite
+  PLA
+  CLC
+  ADC #$04        ; next address
+  PHA
+  JSR ClearSprite
+  PLA
+  PLA
+  TAX
+  RTS
+
+
 StoreMushroomSprites:
   TXA
   PHA
@@ -510,9 +543,9 @@ HandleA:
   BEQ HandleB
 
   ; disables sprite
-  LDA #$40
+  LDA #$70
   PHA
-  JSR ClearSprite
+  JSR ClearMushroomSprites
   PLA
 
 HandleB:
@@ -525,14 +558,11 @@ HandleB:
   PHA
   LDA #$00
   PHA
-  LDA #$7F
-  PHA
   LDA #$20
   PHA
-  LDA #$40
+  LDA #$70
   PHA
-  JSR StoreSprite
-  PLA
+  JSR StoreMushroomSprites
   PLA
   PLA
   PLA
@@ -617,7 +647,7 @@ UpdateSprites:
   PHA
   LDA posy
   PHA
-  LDA #$20
+  LDA #$60
   PHA
   JSR StoreMushroomSprites
   PLA
