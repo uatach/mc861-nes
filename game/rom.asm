@@ -72,6 +72,8 @@ SPRITES = $0200
 
   .enum $0000
 
+  values .dsb 8
+
   pointerLo .dsb 1
   pointerHi .dsb 1
 
@@ -127,239 +129,6 @@ EnableRendering:
   STA PPUSCROLL
   RTS
 
-; clears sprite data from address received on the stack
-ClearSprite:
-  TXA
-  PHA
-  TSX             ; get stack pointer
-  INX
-  INX
-  INX             ; skips return address
-  INX
-  LDA STACK,X     ; load sprite address
-  TAX
-  LDA #$FE        ; load default value
-  STA SPRITES,X
-  INX
-  STA SPRITES,X
-  INX
-  STA SPRITES,X
-  INX
-  STA SPRITES,X
-  PLA
-  TAX
-  RTS
-
-; stores sprite data into addres received on the stack
-StoreSprite:
-  TXA             ; store regs on stack
-  PHA
-  TYA
-  PHA
-  TSX             ; get stack pointer
-  INX
-  INX
-  INX
-  INX             ; skips return address
-  INX
-  LDA STACK,X     ; load sprite address
-  TAY
-  INX
-  LDA STACK,X     ; load sprite y position
-  STA SPRITES,Y
-  INX
-  LDA STACK,X     ; load sprite index
-  INY
-  STA SPRITES,Y
-  INX
-  LDA STACK,X     ; load sprite attrs
-  INY
-  STA SPRITES,Y
-  INX
-  LDA STACK,X     ; load sprite x position
-  INY
-  STA SPRITES,Y
-  PLA             ; restore regs from stack
-  TAY
-  PLA
-  TAX
-  RTS
-
-
-ClearMushroomSprites:
-  TXA
-  PHA
-  TSX
-  INX
-  INX
-  INX
-  INX
-  LDA STACK,X     ; load address
-  PHA
-  JSR ClearSprite
-  PLA
-  CLC
-  ADC #$04        ; next address
-  PHA
-  JSR ClearSprite
-  PLA
-  CLC
-  ADC #$04        ; next address
-  PHA
-  JSR ClearSprite
-  PLA
-  CLC
-  ADC #$04        ; next address
-  PHA
-  JSR ClearSprite
-  PLA
-  PLA
-  TAX
-  RTS
-
-
-StoreMushroomSprites:
-  TXA
-  PHA
-  TSX
-  TXA
-  CLC
-  ADC #$07
-  TAX
-
-  ; mushroom bottom right
-  LDA STACK,X     ; x position
-  CLC
-  ADC #$08
-  PHA
-
-  DEX
-  LDA STACK,X     ; attrs
-  PHA
-
-  LDA #$79        ; sprite
-  PHA
-
-  DEX
-  LDA STACK,X     ; y position
-  CLC
-  ADC #$08
-  PHA
-
-  DEX
-  LDA STACK,X     ; sprite index
-  CLC
-  ADC #$0C
-  PHA
-
-  JSR StoreSprite
-  PLA
-  PLA
-  PLA
-  PLA
-  PLA
-
-  INX
-  INX
-  INX
-
-  ; mushroom bottom left
-  LDA STACK,X     ; x position
-  PHA
-
-  DEX
-  LDA STACK,X     ; attrs
-  PHA
-
-  LDA #$78        ; sprite
-  PHA
-
-  DEX
-  LDA STACK,X     ; y position
-  CLC
-  ADC #$08
-  PHA
-
-  DEX
-  LDA STACK,X     ; sprite index
-  CLC
-  ADC #$08
-  PHA
-
-  JSR StoreSprite
-  PLA
-  PLA
-  PLA
-  PLA
-  PLA
-
-  INX
-  INX
-  INX
-
-  ; mushroom top right
-  LDA STACK,X     ; x position
-  CLC
-  ADC #$08
-  PHA
-
-  DEX
-  LDA STACK,X     ; attrs
-  PHA
-
-  LDA #$77        ; sprite
-  PHA
-
-  DEX
-  LDA STACK,X     ; y position
-  PHA
-
-  DEX
-  LDA STACK,X     ; sprite index
-  CLC
-  ADC #$04
-  PHA
-
-  JSR StoreSprite
-  PLA
-  PLA
-  PLA
-  PLA
-  PLA
-
-  INX
-  INX
-  INX
-
-  ; mushroom top left
-  LDA STACK,X     ; x position
-  PHA
-
-  DEX
-  LDA STACK,X     ; attrs
-  PHA
-
-  LDA #$76        ; sprite
-  PHA
-
-  DEX
-  LDA STACK,X     ; y position
-  PHA
-
-  DEX
-  LDA STACK,X     ; sprite index
-  PHA
-
-  JSR StoreSprite
-  PLA
-  PLA
-  PLA
-  PLA
-  PLA
-
-  PLA
-  TAX
-  RTS
 
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
@@ -507,6 +276,137 @@ Loop:
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
 
+ClearMushroomSprites:
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+
+  LDX values
+  LDY #$00
+  LDA #$FE
+ClearMushroomSpritesLoop:
+  STA SPRITES,X
+  INX
+  INY
+  CPY #$10
+  BNE ClearMushroomSpritesLoop
+
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  RTS
+
+StoreMushroomSprites:
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+
+  ; mushroom top left
+  LDY #$00
+  LDX values,Y ; load address
+
+  INY
+  LDA values,Y ; copy y position
+  STA SPRITES,X
+
+  INX
+  LDA #$76 ; copy sprite index
+  STA SPRITES,X
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy attribute
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy x position
+
+  ; mushroom top right
+  INX
+  LDY #$01
+  LDA values,Y ; copy y position
+  STA SPRITES,X
+
+  INX
+  LDA #$77 ; copy sprite index
+  STA SPRITES,X
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy attribute
+
+  INX
+  INY
+  LDA values,Y
+  CLC
+  ADC #$08
+  STA SPRITES,X ; copy x position
+
+  ; mushroom bottom left
+  INX
+  LDY #$01
+  LDA values,Y ; copy y position
+  CLC
+  ADC #$08
+  STA SPRITES,X
+
+  INX
+  LDA #$78 ; copy sprite index
+  STA SPRITES,X
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy attribute
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy x position
+
+  ; mushroom bottom right
+  INX
+  LDY #$01
+  LDA values,Y ; copy y position
+  CLC
+  ADC #$08
+  STA SPRITES,X
+
+  INX
+  LDA #$79 ; copy sprite index
+  STA SPRITES,X
+
+  INX
+  INY
+  LDA values,Y
+  STA SPRITES,X ; copy attribute
+
+  INX
+  INY
+  LDA values,Y
+  CLC
+  ADC #$08
+  STA SPRITES,X ; copy x position
+
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  RTS
+
+;----------------------------------------------------------------
+;----------------------------------------------------------------
+
 NMI:
   ;NOTE: NMI code goes here
   LDA #<SPRITES
@@ -580,9 +480,8 @@ HandleA:
 
   ; disables sprite
   LDA #$70
-  PHA
+  STA values
   JSR ClearMushroomSprites
-  PLA
 
 HandleB:
   LDA controller1
@@ -590,19 +489,19 @@ HandleB:
   BEQ HandleUp
 
   ; enables sprite
-  LDA #$30
-  PHA
-  LDA #$00
-  PHA
-  LDA #$20
-  PHA
+  LDX #$00
   LDA #$70
-  PHA
+  STA values,X
+  INX
+  LDA #$30
+  STA values,X
+  INX
+  LDA #$00
+  STA values,X
+  INX
+  LDA #$30
+  STA values,X
   JSR StoreMushroomSprites
-  PLA
-  PLA
-  PLA
-  PLA
 
 
 HandleUp:
@@ -677,19 +576,19 @@ HandleRight:
 
 
 UpdateSprites:
-  LDA posx
-  PHA
-  LDA #$00
-  PHA
-  LDA posy
-  PHA
+  LDX #$00
   LDA #$60
-  PHA
+  STA values,X
+  INX
+  LDA posy
+  STA values,X
+  INX
+  LDA #$00
+  STA values,X
+  INX
+  LDA posx
+  STA values,X
   JSR StoreMushroomSprites
-  PLA
-  PLA
-  PLA
-  PLA
 
   JSR EnableRendering
   RTI
