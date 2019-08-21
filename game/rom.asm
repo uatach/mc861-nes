@@ -66,6 +66,8 @@ STACK = $0100
 ; sprite data that is transfered to PPU at the start of every NMI
 SPRITES = $0200
 
+NAMETABLE0 = $2000
+
 ;----------------------------------------------------------------
 ; variables
 ;----------------------------------------------------------------
@@ -219,9 +221,9 @@ LoadPalettesLoop:
 
 LoadBackground:
   LDA PPUSTATUS       ; reset latch
-  LDA #$20
+  LDA #>NAMETABLE0
   STA PPUADDR
-  LDA #$00
+  LDA #<NAMETABLE0
   STA PPUADDR
 
   LDA #<BackgroundData
@@ -276,13 +278,30 @@ Loop:
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
 
-ClearMushroomSprites:
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
+ReadControllers:
+  LDA #$01
+  STA JOY1
+  LDA #$00
+  STA JOY1
 
+  LDX #$08
+ReadController1Loop:
+  LDA JOY1
+  LSR A
+  ROL controller1
+  DEX
+  BNE ReadController1Loop
+
+  LDX #$08
+ReadController2Loop:
+  LDA JOY2
+  LSR A
+  ROL controller2
+  DEX
+  BNE ReadController2Loop
+  RTS
+
+ClearMushroomSprites:
   LDX values
   LDY #$00
   LDA #$FE
@@ -292,21 +311,9 @@ ClearMushroomSpritesLoop:
   INY
   CPY #$10
   BNE ClearMushroomSpritesLoop
-
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
   RTS
 
 StoreMushroomSprites:
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
-
   ; mushroom top left
   LDY #$00
   LDX values,Y ; load address
@@ -396,29 +403,13 @@ StoreMushroomSprites:
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
-
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
   RTS
 
-;----------------------------------------------------------------
-;----------------------------------------------------------------
-
-NMI:
-  ;NOTE: NMI code goes here
-  LDA #<SPRITES
-  STA OAMADDR
-  LDA #>SPRITES
-  STA OAMDMA
-
-Test:
+DrawPositionTiles:
   LDA PPUSTATUS       ; reset latch
-  LDA #$20
+  LDA #$21
   STA PPUADDR
-  LDA #$50
+  LDA #$82
   STA PPUADDR
 
   LDA posx
@@ -447,30 +438,26 @@ Test:
   LDA posy
   AND #$0F
   STA PPUDATA
+  RTS
 
+;----------------------------------------------------------------
+;----------------------------------------------------------------
+
+NMI:
+  ; send sprites to PPU
+  LDA #<SPRITES
+  STA OAMADDR
+  LDA #>SPRITES
+  STA OAMDMA
+
+  ; update tiles
+  JSR DrawPositionTiles
+
+  ; clean up PPU
   JSR EnableRendering
+  ; graphics updates finished
 
-LatchControllers:
-  LDA #$01
-  STA JOY1
-  LDA #$00
-  STA JOY1
-
-  LDX #$08
-ReadController1Loop:
-  LDA JOY1
-  LSR A
-  ROL controller1
-  DEX
-  BNE ReadController1Loop
-
-  LDX #$08
-ReadController2Loop:
-  LDA JOY2
-  LSR A
-  ROL controller2
-  DEX
-  BNE ReadController2Loop
+  JSR ReadControllers
 
 ; TODO: improve
 HandleA:
@@ -590,7 +577,6 @@ UpdateSprites:
   STA values,X
   JSR StoreMushroomSprites
 
-  JSR EnableRendering
   RTI
 
 ;----------------------------------------------------------------
@@ -745,14 +731,14 @@ BackgroundData:
   .db $B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7,$B6,$B7
 
 AttributeData:
-  .db %10101010, %00100000, %00010000, %00000000, %00000000, %01000000, %00000000, %10000000
-  .db %10101010, %00000010, %00010001, %00000000, %00000000, %01000100, %00000000, %00001000
+  .db %10100000, %00100000, %00010000, %00000000, %00000000, %01000000, %00000000, %10000000
+  .db %00101010, %00000010, %00010001, %11000010, %00000000, %01000100, %00000000, %00001000
   .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %10000000, %00100000
   .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00001000, %00000010
   .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
   .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
   .db %00000000, %00000000, %00010001, %00000000, %00000000, %01000100, %00000000, %00000000
-  .db %00000101, %00000101, %00000101, %00000101, %00000101, %01000101, %00000101, %00000101
+  .db %01010101, %01010101, %01010101, %01010101, %01010101, %01010101, %01010101, %01010101
 
 
 ;-------------------------------------------------------------------------------------------------------------------------------------;
