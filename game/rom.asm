@@ -75,6 +75,7 @@ NAMETABLE0 = $2000
   .enum $0000
 
   values .dsb 8
+  temps .dsb 8
 
   pointerLo .dsb 1
   pointerHi .dsb 1
@@ -93,14 +94,49 @@ NAMETABLE0 = $2000
   .ende
 
 ;----------------------------------------------------------------
+; useful macros
+;----------------------------------------------------------------
+
+; LoaD A from Memory with Index
+.macro LDAMI addr, idx
+  LDX #idx
+  LDA addr,X
+.endm
+
+; STore A into Memory with Index
+.macro STAMI addr, idx
+  LDX #idx
+  STA addr,X
+.endm
+
+; STore to Memory
+.macro STM val, addr
+  LDA val
+  STA addr
+.endm
+
+; STore to Memory with Index
+.macro STMI val, addr, idx
+  LDA val
+  STAMI addr,idx
+.endm
+
+; STore to Memory with X
+.macro STMX val, addr
+  LDA val
+  STA addr,X
+.endm
+
+
+;----------------------------------------------------------------
 ; iNES header
 ;----------------------------------------------------------------
 
-  .db "NES", $1a ;identification of the iNES header
-  .db PRG_COUNT ;number of 16KB PRG-ROM pages
-  .db CHR_COUNT ;number of 8KB CHR-ROM pages
-  .db $00|MIRRORING ;mapper 0 and mirroring
-  .dsb 9, $00 ;clear the remaining bytes
+  .db "NES", $1a        ; identification of the iNES header
+  .db PRG_COUNT         ; number of 16KB PRG-ROM pages
+  .db CHR_COUNT         ; number of 8KB CHR-ROM pages
+  .db $00|MIRRORING     ; mapper 0 and mirroring
+  .dsb 9, $00           ; clear the remaining bytes
 
 ;----------------------------------------------------------------
 ; program bank(s)
@@ -122,10 +158,8 @@ WaitVBlank:
 EnableRendering:
   ; following values explained at:
   ;  http://wiki.nesdev.com/w/index.php/PPU_registers
-  LDA #%10010000
-  STA PPUCTRL
-  LDA #%00011110
-  STA PPUMASK
+  STM #%10010000, PPUCTRL
+  STM #%00011110, PPUMASK
   LDA #$00
   STA PPUSCROLL
   STA PPUSCROLL
@@ -170,8 +204,7 @@ ClearMemory:      ; setup ram
   BNE ClearMemory
 
   ; setup APU
-  LDA #$0F
-  STA APUFLAGS
+  STM #$0F, APUFLAGS
 
   ; eternal beep
   ;Square 1
@@ -205,10 +238,8 @@ ClearMemory:      ; setup ram
 
 LoadPalettes:
   LDA PPUSTATUS       ; reset latch
-  LDA #$3F
-  STA PPUADDR
-  LDA #$00
-  STA PPUADDR
+  STM #$3F, PPUADDR
+  STM #$00, PPUADDR
 
   LDX #$00
 LoadPalettesLoop:
@@ -221,15 +252,11 @@ LoadPalettesLoop:
 
 LoadBackground:
   LDA PPUSTATUS       ; reset latch
-  LDA #>NAMETABLE0
-  STA PPUADDR
-  LDA #<NAMETABLE0
-  STA PPUADDR
+  STM #>NAMETABLE0, PPUADDR
+  STM #<NAMETABLE0, PPUADDR
 
-  LDA #<BackgroundData
-  STA pointerLo
-  LDA #>BackgroundData
-  STA pointerHi
+  STM #<BackgroundData, pointerLo
+  STM #>BackgroundData, pointerHi
 
   LDX #$00
   LDY #$00
@@ -249,10 +276,8 @@ LoadBackgroundInsideLoop:
 
 LoadAttribute:
   LDA PPUSTATUS       ; reset latch
-  LDA #$23
-  STA PPUADDR
-  LDA #$C0
-  STA PPUADDR
+  STM #$23, PPUADDR
+  STM #$C0, PPUADDR
 
   LDX #$00
 LoadAttributeLoop:
@@ -279,10 +304,8 @@ Loop:
 ;----------------------------------------------------------------
 
 ReadControllers:
-  LDA #$01
-  STA JOY1
-  LDA #$00
-  STA JOY1
+  STM #$01, JOY1
+  STM #$00, JOY1
 
   LDX #$08
 ReadController1Loop:
@@ -323,8 +346,7 @@ StoreMushroomSprites:
   STA SPRITES,X
 
   INX
-  LDA #$76 ; copy sprite index
-  STA SPRITES,X
+  STMX #$76, SPRITES ; copy sprite index
 
   INX
   INY
@@ -343,8 +365,7 @@ StoreMushroomSprites:
   STA SPRITES,X
 
   INX
-  LDA #$77 ; copy sprite index
-  STA SPRITES,X
+  STMX #$77, SPRITES ; copy sprite index
 
   INX
   INY
@@ -367,8 +388,7 @@ StoreMushroomSprites:
   STA SPRITES,X
 
   INX
-  LDA #$78 ; copy sprite index
-  STA SPRITES,X
+  STMX #$78, SPRITES ; copy sprite index
 
   INX
   INY
@@ -389,8 +409,7 @@ StoreMushroomSprites:
   STA SPRITES,X
 
   INX
-  LDA #$79 ; copy sprite index
-  STA SPRITES,X
+  STMX #$79, SPRITES ; copy sprite index
 
   INX
   INY
@@ -424,8 +443,7 @@ DrawPositionTiles:
   AND #$0F
   STA PPUDATA
 
-  LDA #$24
-  STA PPUDATA
+  STM #$24, PPUDATA
 
   LDA posy
   ROR A
@@ -445,10 +463,8 @@ DrawPositionTiles:
 
 NMI:
   ; send sprites to PPU
-  LDA #<SPRITES
-  STA OAMADDR
-  LDA #>SPRITES
-  STA OAMDMA
+  STM #<SPRITES, OAMADDR
+  STM #>SPRITES, OAMDMA
 
   ; update tiles
   JSR DrawPositionTiles
@@ -466,8 +482,7 @@ HandleA:
   BEQ HandleB
 
   ; disables sprite
-  LDA #$70
-  STA values
+  STM #$70, values
   JSR ClearMushroomSprites
 
 HandleB:
@@ -476,18 +491,10 @@ HandleB:
   BEQ HandleUp
 
   ; enables sprite
-  LDX #$00
-  LDA #$70
-  STA values,X
-  INX
-  LDA #$30
-  STA values,X
-  INX
-  LDA #$00
-  STA values,X
-  INX
-  LDA #$30
-  STA values,X
+  STMI #$70, values,$00
+  STMI #$30, values,$01
+  STMI #$00, values,$02
+  STMI #$30, values,$03
   JSR StoreMushroomSprites
 
 
@@ -563,18 +570,10 @@ HandleRight:
 
 
 UpdateSprites:
-  LDX #$00
-  LDA #$60
-  STA values,X
-  INX
-  LDA posy
-  STA values,X
-  INX
-  LDA #$00
-  STA values,X
-  INX
-  LDA posx
-  STA values,X
+  STMI #$60, values,$00
+  STMI posy, values,$01
+  STMI #$00, values,$02
+  STMI posx, values,$03
   JSR StoreMushroomSprites
 
   RTI
