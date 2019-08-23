@@ -77,14 +77,16 @@ NAMETABLE0 = $2000
   values .dsb 8
   temps .dsb 8
 
+  ; holds blocks data (color, position) 13*6*2 = 156
+  blocks .dsb 162
+  latest .dsb 1
+
   pointerLo .dsb 1
   pointerHi .dsb 1
 
   ; holds controllers data
   controller1 .dsb 1
   controller2 .dsb 1
-
-  mushrooms .dsb 84
 
   ; TODO: remove
   posx .dsb 1
@@ -293,6 +295,9 @@ LoadAttributeLoop:
   STA posx
   STA posy
 
+  STM #$00, latest
+  JSR CreateBlocks
+
   ; last step, enables NMI
   JSR EnableRendering
 
@@ -411,12 +416,38 @@ StoreMushroomSprites:
   STA SPRITES,X ; copy x position
   RTS
 
+StoreTiles:
+  LDA PPUSTATUS       ; reset latch
+  LDAMI values,$00
+  STA PPUADDR
+  LDAMI values,$01
+  STA PPUADDR
+
+  LDAMI values,$02
+  TAX
+  STX PPUDATA
+  INX
+  STX PPUDATA
+
+  ; TODO: needs 16-bit addition
+  LDA PPUSTATUS       ; reset latch
+  LDAMI values,$00
+  STA PPUADDR
+  LDAMI values,$01
+  CLC
+  ADC #$20
+  STA PPUADDR
+
+  INX
+  STX PPUDATA
+  INX
+  STX PPUDATA
+  RTS
+
 DrawPositionTiles:
   LDA PPUSTATUS       ; reset latch
-  LDA #$21
-  STA PPUADDR
-  LDA #$82
-  STA PPUADDR
+  STM #$21, PPUADDR
+  STM #$82, PPUADDR
 
   LDA posx
   ROR A
@@ -445,6 +476,74 @@ DrawPositionTiles:
   STA PPUDATA
   RTS
 
+
+CreateBlocks:
+  LDX latest
+  STMX #$00, blocks
+  INX
+  STMX #$00, blocks
+  INX
+  STMX #$01, blocks
+  INX
+  STMX #$02, blocks
+  INX
+  STMX #$02, blocks
+  INX
+  STMX #$02, blocks
+  RTS
+
+DrawBlocks:
+  LDA #<NAMETABLE0
+  CLC
+  ADC #$0A
+  STAMI temps,$00
+
+  STMI #>NAMETABLE0, temps,$01
+
+  LDX latest
+  INX
+  LDA blocks,X
+-
+  CLC
+  CMP #$05
+  BCC +
+
+  CLC
+  SBC #$06
+  PHA
+
+  LDA #$40
+  CLC
+  ADC temps
+  STA temps
+  LDAMI temps,$01
+  ADC #$00
+  STAMI temps,$01
+
+  PLA
+  JMP -
++ ASL
+  CLC
+  ADC temps
+  STAMI values,$01
+
+  LDAMI temps,$01
+  STAMI values,$00
+
+  STMI #$53, values,$02
+  JSR StoreTiles
+
+  RTS
+  
+
+MoveBlocks:
+  LDX latest
+  INX
+  LDA #$06
+  ADC blocks,X
+  STA blocks,X
+  RTS
+
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
 
@@ -455,12 +554,22 @@ NMI:
 
   ; update tiles
   JSR DrawPositionTiles
+  JSR DrawBlocks
 
   ; clean up PPU
   JSR EnableRendering
   ; graphics updates finished
 
   JSR ReadControllers
+
+  
+  INC counter
+  LDA counter
+  CMP #$00
+  BNE +
+  JSR MoveBlocks
++
+
 
 ; TODO: improve
 HandleA:
