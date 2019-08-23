@@ -68,6 +68,12 @@ SPRITES = $0200
 
 NAMETABLE0 = $2000
 
+
+; game constants
+
+ROWSIZE = $06
+
+
 ;----------------------------------------------------------------
 ; variables
 ;----------------------------------------------------------------
@@ -481,7 +487,7 @@ CreateBlocks:
   LDX latest
   STMX #$00, blocks
   INX
-  STMX #$00, blocks
+  STMX #$02, blocks
   INX
   STMX #$01, blocks
   INX
@@ -496,7 +502,7 @@ DrawBlocks:
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
-  STAMI temps,$00
+  STA temps
 
   STMI #>NAMETABLE0, temps,$01
 
@@ -505,11 +511,11 @@ DrawBlocks:
   LDA blocks,X
 -
   CLC
-  CMP #$05
+  CMP #ROWSIZE
   BCC +
 
-  CLC
-  SBC #$06
+  SEC
+  SBC #ROWSIZE
   PHA
 
   LDA #$40
@@ -539,9 +545,15 @@ DrawBlocks:
 MoveBlocks:
   LDX latest
   INX
-  LDA #$06
+  LDA #$4D
+  CLC
+  CMP blocks,X
+  BCC +
+  LDA #ROWSIZE
+  CLC
   ADC blocks,X
   STA blocks,X
++
   RTS
 
 ;----------------------------------------------------------------
