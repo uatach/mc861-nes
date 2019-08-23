@@ -88,7 +88,6 @@ ROWSIZE = $06
 
   ; holds temporary values to free registers locally,
   ; also used to pass parameters to subroutines.
-  ; TODO: improve sections not using this to pass params
   T .dsb 8
 
   ; holds blocks data (color, position) 13*6*2 = 156
@@ -345,7 +344,7 @@ ReadController2Loop:
   RTS
 
 ClearMushroomSprites:
-  LDX S
+  LDX T
   LDY #$00
   LDA #$FE
 ClearMushroomSpritesLoop:
@@ -358,43 +357,43 @@ ClearMushroomSpritesLoop:
 
 StoreMushroomSprites:
   ; mushroom top left
-  LDX S ; load address
+  LDX T ; load address
 
-  LDAMI S,$01 ; copy y position
+  LDAMI T,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$76, SPRITES ; copy sprite index
 
   INX
-  LDAMI S,$02
+  LDAMI T,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI S,$03
+  LDAMI T,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom top right
   INX
-  LDAMI S,$01 ; copy y position
+  LDAMI T,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$77, SPRITES ; copy sprite index
 
   INX
-  LDAMI S,$02
+  LDAMI T,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI S,$03
+  LDAMI T,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom left
   INX
-  LDAMI S,$01 ; copy y position
+  LDAMI T,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -403,16 +402,16 @@ StoreMushroomSprites:
   STMX #$78, SPRITES ; copy sprite index
 
   INX
-  LDAMI S,$02
+  LDAMI T,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI S,$03
+  LDAMI T,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom right
   INX
-  LDAMI S,$01 ; copy y position
+  LDAMI T,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -421,11 +420,11 @@ StoreMushroomSprites:
   STMX #$79, SPRITES ; copy sprite index
 
   INX
-  LDAMI S,$02
+  LDAMI T,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI S,$03
+  LDAMI T,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
@@ -433,12 +432,12 @@ StoreMushroomSprites:
 
 StoreTiles:
   LDA PPUSTATUS       ; reset latch
-  LDAMI S,$00
+  LDAMI T,$00
   STA PPUADDR
-  LDAMI S,$01
+  LDAMI T,$01
   STA PPUADDR
 
-  LDAMI S,$02
+  LDAMI T,$02
   TAX
   STX PPUDATA
   INX
@@ -446,9 +445,9 @@ StoreTiles:
 
   ; TODO: needs 16-bit addition
   LDA PPUSTATUS       ; reset latch
-  LDAMI S,$00
+  LDAMI T,$00
   STA PPUADDR
-  LDAMI S,$01
+  LDAMI T,$01
   CLC
   ADC #$20
   STA PPUADDR
@@ -511,9 +510,9 @@ DrawBlocks:
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
-  STA T
+  STA S
 
-  STMI #>NAMETABLE0, T,$01
+  STMI #>NAMETABLE0, S,$01
 
   LDX latest
   INX
@@ -529,23 +528,23 @@ DrawBlocks:
 
   LDA #$40
   CLC
-  ADC T
-  STA T
-  LDAMI T,$01
+  ADC S
+  STA S
+  LDAMI S,$01
   ADC #$00
-  STAMI T,$01
+  STAMI S,$01
 
   PLA
   JMP -
 + ASL
   CLC
-  ADC T
-  STAMI S,$01
+  ADC S
+  STAMI T,$01
 
-  LDAMI T,$01
-  STAMI S,$00
+  LDAMI S,$01
+  STAMI T,$00
 
-  STMI #$53, S,$02
+  STMI #$53, T,$02
   JSR StoreTiles
 
   RTS
@@ -598,7 +597,7 @@ HandleA:
   BEQ HandleB
 
   ; disables sprite
-  STM #$70, S
+  STM #$70, T
   JSR ClearMushroomSprites
 
 HandleB:
@@ -607,10 +606,10 @@ HandleB:
   BEQ HandleUp
 
   ; enables sprite
-  STMI #$70, S,$00
-  STMI #$30, S,$01
-  STMI #$00, S,$02
-  STMI #$30, S,$03
+  STMI #$70, T,$00
+  STMI #$30, T,$01
+  STMI #$00, T,$02
+  STMI #$30, T,$03
   JSR StoreMushroomSprites
 
 
@@ -686,10 +685,10 @@ HandleRight:
 
 
 UpdateSprites:
-  STMI #$60, S,$00
-  STMI posy, S,$01
-  STMI #$00, S,$02
-  STMI posx, S,$03
+  STMI #$60, T,$00
+  STMI posy, T,$01
+  STMI #$00, T,$02
+  STMI posx, T,$03
   JSR StoreMushroomSprites
 
   RTI
