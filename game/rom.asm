@@ -99,14 +99,14 @@ NAMETABLE0 = $2000
 
 ; LoaD A from Memory with Index
 .macro LDAMI addr, idx
-  LDX #idx
-  LDA addr,X
+  LDY #idx
+  LDA addr,Y
 .endm
 
 ; STore A into Memory with Index
 .macro STAMI addr, idx
-  LDX #idx
-  STA addr,X
+  LDY #idx
+  STA addr,Y
 .endm
 
 ; STore to Memory
@@ -338,51 +338,43 @@ ClearMushroomSpritesLoop:
 
 StoreMushroomSprites:
   ; mushroom top left
-  LDY #$00
-  LDX values,Y ; load address
+  LDX values ; load address
 
-  INY
-  LDA values,Y ; copy y position
+  LDAMI values,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$76, SPRITES ; copy sprite index
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom top right
   INX
-  LDY #$01
-  LDA values,Y ; copy y position
+  LDAMI values,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$77, SPRITES ; copy sprite index
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom left
   INX
-  LDY #$01
-  LDA values,Y ; copy y position
+  LDAMI values,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -391,19 +383,16 @@ StoreMushroomSprites:
   STMX #$78, SPRITES ; copy sprite index
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom right
   INX
-  LDY #$01
-  LDA values,Y ; copy y position
+  LDAMI values,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -412,13 +401,11 @@ StoreMushroomSprites:
   STMX #$79, SPRITES ; copy sprite index
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  INY
-  LDA values,Y
+  LDAMI values,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
