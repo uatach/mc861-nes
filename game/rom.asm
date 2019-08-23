@@ -258,12 +258,12 @@ LoadPalettes:
   STM #$00, PPUADDR
 
   LDX #$00
-LoadPalettesLoop:
+-
   LDA PaletteData,X
   STA PPUDATA
   INX
   CPX #$20
-  BNE LoadPalettesLoop
+  BNE -
 
 
 LoadBackground:
@@ -276,18 +276,18 @@ LoadBackground:
 
   LDX #$00
   LDY #$00
-LoadBackgroundOutsideLoop:
-LoadBackgroundInsideLoop:
+--
+-
   LDA (pointerLo),Y
   STA PPUDATA
   INY
   CPY #$00
-  BNE LoadBackgroundInsideLoop
+  BNE -
 
   INC pointerHi
   INX
   CPX #$04
-  BNE LoadBackgroundOutsideLoop
+  BNE --
 
 
 LoadAttribute:
@@ -296,12 +296,12 @@ LoadAttribute:
   STM #$C0, PPUADDR
 
   LDX #$00
-LoadAttributeLoop:
+-
   LDA AttributeData,X
   STA PPUDATA
   INX
   CPX #$40
-  BNE LoadAttributeLoop
+  BNE -
 
 
   ; init variables
@@ -315,9 +315,9 @@ LoadAttributeLoop:
   ; last step, enables NMI
   JSR EnableRendering
 
-Loop:
+WaitNMI:
   ; waits for NMI IRQs
-  JMP Loop
+  JMP WaitNMI
 
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
@@ -327,32 +327,32 @@ ReadControllers:
   STM #$00, JOY1
 
   LDX #$08
-ReadController1Loop:
+-
   LDA JOY1
   LSR A
   ROL controller1
   DEX
-  BNE ReadController1Loop
+  BNE -
 
   LDX #$08
-ReadController2Loop:
+-
   LDA JOY2
   LSR A
   ROL controller2
   DEX
-  BNE ReadController2Loop
+  BNE -
   RTS
 
 ClearMushroomSprites:
   LDX T
   LDY #$00
   LDA #$FE
-ClearMushroomSpritesLoop:
+-
   STA SPRITES,X
   INX
   INY
   CPY #$10
-  BNE ClearMushroomSpritesLoop
+  BNE -
   RTS
 
 StoreMushroomSprites:
