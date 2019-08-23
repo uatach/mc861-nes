@@ -80,10 +80,19 @@ ROWSIZE = $06
 
   .enum $0000
 
-  values .dsb 8
-  temps .dsb 8
+  ; holds values that should survive jumps to subroutines,
+  ; meaning that subroutines must restore these values before
+  ; returning.
+  ; TODO: improve usages without restoring
+  S .dsb 8
+
+  ; holds temporary values to free registers locally,
+  ; also used to pass parameters to subroutines.
+  ; TODO: improve sections not using this to pass params
+  T .dsb 8
 
   ; holds blocks data (color, position) 13*6*2 = 156
+  ; TODO: split into color and position?
   blocks .dsb 162
   latest .dsb 1
 
@@ -94,7 +103,7 @@ ROWSIZE = $06
   controller1 .dsb 1
   controller2 .dsb 1
 
-  ; TODO: remove
+  ; TODO: remove?
   posx .dsb 1
   posy .dsb 1
   counter .dsb 1
@@ -336,7 +345,7 @@ ReadController2Loop:
   RTS
 
 ClearMushroomSprites:
-  LDX values
+  LDX S
   LDY #$00
   LDA #$FE
 ClearMushroomSpritesLoop:
@@ -349,43 +358,43 @@ ClearMushroomSpritesLoop:
 
 StoreMushroomSprites:
   ; mushroom top left
-  LDX values ; load address
+  LDX S ; load address
 
-  LDAMI values,$01 ; copy y position
+  LDAMI S,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$76, SPRITES ; copy sprite index
 
   INX
-  LDAMI values,$02
+  LDAMI S,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI values,$03
+  LDAMI S,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom top right
   INX
-  LDAMI values,$01 ; copy y position
+  LDAMI S,$01 ; copy y position
   STA SPRITES,X
 
   INX
   STMX #$77, SPRITES ; copy sprite index
 
   INX
-  LDAMI values,$02
+  LDAMI S,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI values,$03
+  LDAMI S,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom left
   INX
-  LDAMI values,$01 ; copy y position
+  LDAMI S,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -394,16 +403,16 @@ StoreMushroomSprites:
   STMX #$78, SPRITES ; copy sprite index
 
   INX
-  LDAMI values,$02
+  LDAMI S,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI values,$03
+  LDAMI S,$03
   STA SPRITES,X ; copy x position
 
   ; mushroom bottom right
   INX
-  LDAMI values,$01 ; copy y position
+  LDAMI S,$01 ; copy y position
   CLC
   ADC #$08
   STA SPRITES,X
@@ -412,11 +421,11 @@ StoreMushroomSprites:
   STMX #$79, SPRITES ; copy sprite index
 
   INX
-  LDAMI values,$02
+  LDAMI S,$02
   STA SPRITES,X ; copy attribute
 
   INX
-  LDAMI values,$03
+  LDAMI S,$03
   CLC
   ADC #$08
   STA SPRITES,X ; copy x position
@@ -424,12 +433,12 @@ StoreMushroomSprites:
 
 StoreTiles:
   LDA PPUSTATUS       ; reset latch
-  LDAMI values,$00
+  LDAMI S,$00
   STA PPUADDR
-  LDAMI values,$01
+  LDAMI S,$01
   STA PPUADDR
 
-  LDAMI values,$02
+  LDAMI S,$02
   TAX
   STX PPUDATA
   INX
@@ -437,9 +446,9 @@ StoreTiles:
 
   ; TODO: needs 16-bit addition
   LDA PPUSTATUS       ; reset latch
-  LDAMI values,$00
+  LDAMI S,$00
   STA PPUADDR
-  LDAMI values,$01
+  LDAMI S,$01
   CLC
   ADC #$20
   STA PPUADDR
@@ -502,9 +511,9 @@ DrawBlocks:
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
-  STA temps
+  STA T
 
-  STMI #>NAMETABLE0, temps,$01
+  STMI #>NAMETABLE0, T,$01
 
   LDX latest
   INX
@@ -520,28 +529,27 @@ DrawBlocks:
 
   LDA #$40
   CLC
-  ADC temps
-  STA temps
-  LDAMI temps,$01
+  ADC T
+  STA T
+  LDAMI T,$01
   ADC #$00
-  STAMI temps,$01
+  STAMI T,$01
 
   PLA
   JMP -
 + ASL
   CLC
-  ADC temps
-  STAMI values,$01
+  ADC T
+  STAMI S,$01
 
-  LDAMI temps,$01
-  STAMI values,$00
+  LDAMI T,$01
+  STAMI S,$00
 
-  STMI #$53, values,$02
+  STMI #$53, S,$02
   JSR StoreTiles
 
   RTS
   
-
 MoveBlocks:
   LDX latest
   INX
@@ -590,7 +598,7 @@ HandleA:
   BEQ HandleB
 
   ; disables sprite
-  STM #$70, values
+  STM #$70, S
   JSR ClearMushroomSprites
 
 HandleB:
@@ -599,10 +607,10 @@ HandleB:
   BEQ HandleUp
 
   ; enables sprite
-  STMI #$70, values,$00
-  STMI #$30, values,$01
-  STMI #$00, values,$02
-  STMI #$30, values,$03
+  STMI #$70, S,$00
+  STMI #$30, S,$01
+  STMI #$00, S,$02
+  STMI #$30, S,$03
   JSR StoreMushroomSprites
 
 
@@ -678,10 +686,10 @@ HandleRight:
 
 
 UpdateSprites:
-  STMI #$60, values,$00
-  STMI posy, values,$01
-  STMI #$00, values,$02
-  STMI posx, values,$03
+  STMI #$60, S,$00
+  STMI posy, S,$01
+  STMI #$00, S,$02
+  STMI posx, S,$03
   JSR StoreMushroomSprites
 
   RTI
