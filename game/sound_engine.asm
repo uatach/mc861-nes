@@ -8,25 +8,25 @@ SoundInit:
 
   ;Square 1
   LDA #%00111000  ;Duty 00, Volume 8 (half volume)
-  STA $4000
+  STA SQ1_ENV
   LDA #$C9        ;$0C9 is a C# in NTSC mode
-  STA $4002       ;low 8 bits of period
+  STA SQ1_LO      ;low 8 bits of period
   LDA #$00
-  STA $4003       ;high 3 bits of period
+  STA SQ1_HI       ;high 3 bits of period
 
   ;Square 2
   LDA #%01110110  ;Duty 01, Volume 6
-  STA $4004
+  STA SQ2_ENV
   LDA #$A9        ;$0A9 is an E in NTSC mode
-  STA $4006
+  STA SQ2_HI
   LDA #$00
-  STA $4007
+  STA SQ2_HI
 
   ;Triangle
   LDA #%10000001  ;Triangle channel on
-  STA $4008
+  STA TRI_CTRL
   LDA #$42        ;$042 is a G# in NTSC mode
-  STA $400A
+  STA TRI_LO
   LDA #$00
-  STA $400B
+  STA TRI_HI
   JSR WaitVBlank
