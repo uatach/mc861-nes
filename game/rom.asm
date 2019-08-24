@@ -87,10 +87,10 @@ ROWSIZE = $06
   T .dsb 8
 
   ; holds blocks data (color, position) 13*6*2 = 156
-  ; TODO: split into color and position?
   blocks .dsb 80
-  colors .dsb 28
+  colors .dsb 80
   latest .dsb 1
+  blockx .dsb 1
 
   pointerLo .dsb 1
   pointerHi .dsb 1
@@ -114,6 +114,12 @@ ROWSIZE = $06
 .macro LDAMI addr, idx
   LDY #idx
   LDA addr,Y
+.endm
+
+; LoaD X from Memory with Index
+.macro LDXMI addr, idx
+  LDY #idx
+  LDX addr,Y
 .endm
 
 ; STore A into Memory with Index
@@ -278,6 +284,7 @@ LoadAttribute:
   STA posy
 
   STM #$00, latest
+  STM #$02, blockx
   JSR CreateBlocks
 
   ; last step, enables NMI
@@ -548,9 +555,8 @@ DrawBlock:
   RTS
 
 
-; TODO: receive index
-MoveBlock:
-  LDX latest
+MoveBlockDown:
+  LDXMI T,$01
   LDA #$4D
   CLC
   CMP blocks,X
@@ -565,6 +571,22 @@ MoveBlock:
   ADC blocks,X
   STA blocks,X
 +
+  RTS
+
+MoveBlockLeft:
+  LDXMI T,$01
+  LDA blocks,X
+  SEC
+  SBC #$01
+  STA blocks,X
+  RTS
+
+MoveBlockRight:
+  LDXMI T,$01
+  LDA blocks,X
+  CLC
+  ADC #$01
+  STA blocks,X
   RTS
 
 ;----------------------------------------------------------------
@@ -582,7 +604,9 @@ NMI:
   LDA counter
   CMP #$00
   BNE +
-  JSR MoveBlock
+  LDA latest
+  STAMI T,$01
+  JSR MoveBlockDown
 +
 
   JSR DrawBlock
@@ -664,6 +688,16 @@ HandleLeft:
   LDA #$00
   STA $400B
 
+  LDA blockx
+  CLC
+  CMP #$01
+  BCC +
+  DEC blockx
+  LDA latest
+  STAMI T,$01
+  JSR MoveBlockLeft
++
+
   LDA posx
   SEC
   SBC #$01
@@ -680,6 +714,16 @@ HandleRight:
   STA $400A
   LDA #$00
   STA $400B
+
+  LDA blockx
+  CLC
+  CMP #$05
+  BCS +
+  INC blockx
+  LDA latest
+  STAMI T,$01
+  JSR MoveBlockRight
++
 
 
   LDA posx
