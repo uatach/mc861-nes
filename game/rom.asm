@@ -397,6 +397,31 @@ StoreMushroomSprites:
   STA SPRITES,X ; copy x position
   RTS
 
+ClearTiles:
+  LDA PPUSTATUS       ; reset latch
+  LDAMI T,$00
+  STA PPUADDR
+  LDAMI T,$01
+  STA PPUADDR
+
+  LDA #$24
+  STA PPUDATA
+  STA PPUDATA
+
+  ; TODO: needs 16-bit addition
+  LDA PPUSTATUS       ; reset latch
+  LDAMI T,$00
+  STA PPUADDR
+  LDAMI T,$01
+  CLC
+  ADC #$20
+  STA PPUADDR
+
+  LDA #$24
+  STA PPUDATA
+  STA PPUDATA
+  RTS
+
 StoreTiles:
   LDA PPUSTATUS       ; reset latch
   LDAMI T,$00
@@ -471,8 +496,7 @@ CreateBlocks:
   RTS
 
 
-; TODO: receive index
-DrawBlock:
+CalcBlockAddress:
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
@@ -509,10 +533,18 @@ DrawBlock:
 
   LDAMI S,$01
   STAMI T,$00
+  RTS
 
+ClearBlock:
+  JSR CalcBlockAddress
+  JSR ClearTiles
+  RTS
+
+; TODO: receive index
+DrawBlock:
+  JSR CalcBlockAddress
   STMI #$53, T,$02
   JSR StoreTiles
-
   RTS
 
 
@@ -523,6 +555,11 @@ MoveBlock:
   CLC
   CMP blocks,X
   BCC +
+  TXA
+  PHA
+  JSR ClearBlock
+  PLA
+  TAX
   LDA #ROWSIZE
   CLC
   ADC blocks,X
@@ -540,14 +577,6 @@ NMI:
 
   ; update tiles
   JSR DrawPositionTiles
-  JSR DrawBlock
-
-  ; clean up PPU
-  JSR EnableRendering
-  ; graphics updates finished
-
-  JSR ReadControllers
-
 
   INC counter
   LDA counter
@@ -555,6 +584,14 @@ NMI:
   BNE +
   JSR MoveBlock
 +
+
+  JSR DrawBlock
+
+  ; clean up PPU
+  JSR EnableRendering
+  ; graphics updates finished
+
+  JSR ReadControllers
 
 
 ; TODO: improve
