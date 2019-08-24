@@ -88,7 +88,8 @@ ROWSIZE = $06
 
   ; holds blocks data (color, position) 13*6*2 = 156
   ; TODO: split into color and position?
-  blocks .dsb 162
+  blocks .dsb 80
+  colors .dsb 28
   latest .dsb 1
 
   pointerLo .dsb 1
@@ -271,7 +272,6 @@ LoadAttribute:
   CPX #$40
   BNE -
 
-
   ; init variables
   LDA #$80
   STA posx
@@ -284,7 +284,6 @@ LoadAttribute:
   JSR EnableRendering
 
 WaitNMI:
-  ; waits for NMI IRQs
   JMP WaitNMI
 
 ;----------------------------------------------------------------
@@ -461,20 +460,19 @@ DrawPositionTiles:
 
 CreateBlocks:
   LDX latest
-  STMX #$00, blocks
-  INX
+  STMX #$02, colors
   STMX #$02, blocks
   INX
-  STMX #$01, blocks
-  INX
+  STMX #$01, colors
   STMX #$02, blocks
   INX
-  STMX #$02, blocks
-  INX
+  STMX #$00, colors
   STMX #$02, blocks
   RTS
 
-DrawBlocks:
+
+; TODO: receive index
+DrawBlock:
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
@@ -483,7 +481,6 @@ DrawBlocks:
   STMI #>NAMETABLE0, S,$01
 
   LDX latest
-  INX
   LDA blocks,X
 -
   CLC
@@ -504,7 +501,8 @@ DrawBlocks:
 
   PLA
   JMP -
-+ ASL
++
+  ASL
   CLC
   ADC S
   STAMI T,$01
@@ -517,9 +515,10 @@ DrawBlocks:
 
   RTS
 
-MoveBlocks:
+
+; TODO: receive index
+MoveBlock:
   LDX latest
-  INX
   LDA #$4D
   CLC
   CMP blocks,X
@@ -541,7 +540,7 @@ NMI:
 
   ; update tiles
   JSR DrawPositionTiles
-  JSR DrawBlocks
+  JSR DrawBlock
 
   ; clean up PPU
   JSR EnableRendering
@@ -554,7 +553,7 @@ NMI:
   LDA counter
   CMP #$00
   BNE +
-  JSR MoveBlocks
+  JSR MoveBlock
 +
 
 
