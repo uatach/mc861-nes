@@ -16,10 +16,6 @@
 ;----------------------------------------------------------------
 ; constants
 ;----------------------------------------------------------------
-
-; include engine de som
-;.include "sound_engine.asm"
-
 ; number of PRG pages
 PRG_COUNT = 1 ; 1 = 16KB, 2 = 32KB
 
@@ -203,36 +199,8 @@ ClearMemory:      ; setup ram
   INX
   BNE ClearMemory
 
-  ; setup APU
-  STM #$0F, APUFLAGS
-
-  ; eternal beep
-  ;Square 1
-  ;LDA #%00111000  ;Duty 00, Volume 8 (half volume)
-  ;STA $4000
-  ;LDA #$C9        ;$0C9 is a C# in NTSC mode
-  ;STA $4002       ;low 8 bits of period
-  ;LDA #$00
-  ;STA $4003       ;high 3 bits of period
-
-  ;;Square 2
-  ;LDA #%01110110  ;Duty 01, Volume 6
-  ;STA $4004
-  ;LDA #$E9        ;$0A9 is an E in NTSC mode
-  ;STA $4006
-  ;LDA #$00
-  ;STA $4007
-
-  ;;Triangle
-  ;LDA #%10000001  ;Triangle channel on
-  ;STA $4008
-  ;LDA #$42        ;$042 is a G# in NTSC mode
-  ;STA $400A
-  ;LDA #$00
-  ;STA $400B
-
-  JSR WaitVBlank
-  ; end of init code
+; include engine de som
+  .include "sound_engine.asm"
 
 ; start loading data into ram and ppu memory
 
