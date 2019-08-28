@@ -550,7 +550,7 @@ ClearBlock:
 ; TODO: receive index
 DrawBlock:
   JSR CalcBlockAddress
-  STMI #$53, T,$02
+  STMI #$99, T,$02
   JSR StoreTiles
   RTS
 
