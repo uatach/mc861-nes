@@ -575,6 +575,11 @@ MoveBlockDown:
 
 MoveBlockLeft:
   LDXMI T,$01
+  TXA
+  PHA
+  JSR ClearBlock
+  PLA
+  TAX
   LDA blocks,X
   SEC
   SBC #$01
@@ -583,6 +588,11 @@ MoveBlockLeft:
 
 MoveBlockRight:
   LDXMI T,$01
+  TXA
+  PHA
+  JSR ClearBlock
+  PLA
+  TAX
   LDA blocks,X
   CLC
   ADC #$01
@@ -610,10 +620,6 @@ NMI:
 +
 
   JSR DrawBlock
-
-  ; clean up PPU
-  JSR EnableRendering
-  ; graphics updates finished
 
   JSR ReadControllers
 
@@ -738,6 +744,10 @@ UpdateSprites:
   STMI #$00, T,$02
   STMI posx, T,$03
   JSR StoreMushroomSprites
+
+  ; clean up PPU
+  JSR EnableRendering
+  ; graphics updates finished
 
   RTI
 
