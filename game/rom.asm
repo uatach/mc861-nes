@@ -88,7 +88,7 @@ ROWSIZE = $06
 
   ; holds blocks data (color, position) 13*6*2 = 156
   blocks .dsb 80
-  colors .dsb 80
+  shapes .dsb 80
   latest .dsb 1
   blockx .dsb 1
 
@@ -492,13 +492,13 @@ DrawPositionTiles:
 
 CreateBlocks:
   LDX latest
-  STMX #$02, colors
+  STMX #$99, shapes
   STMX #$02, blocks
   INX
-  STMX #$01, colors
+  STMX #$99, shapes
   STMX #$02, blocks
   INX
-  STMX #$00, colors
+  STMX #$99, shapes
   STMX #$02, blocks
   RTS
 
@@ -550,7 +550,12 @@ ClearBlock:
 ; TODO: receive index
 DrawBlock:
   JSR CalcBlockAddress
-  STMI #$99, T,$02
+
+  ; loading sprite index
+  LDX latest
+  LDA shapes,X
+  STAMI T,$02
+
   JSR StoreTiles
   RTS
 
