@@ -222,9 +222,6 @@ ClearMemory:      ; setup ram
   INX
   BNE ClearMemory
 
-; include engine de som
-  .include "sound_engine.asm"
-
 ; start loading data into ram and ppu memory
 
 LoadPalettes:
@@ -239,6 +236,7 @@ LoadPalettes:
   INX
   CPX #$20
   BNE -
+
 
 
 LoadBackground:
@@ -287,11 +285,17 @@ LoadAttribute:
   STM #$02, blockx
   JSR CreateBlocks
 
+  jsr SoundInit
+
   ; last step, enables NMI
   JSR EnableRendering
 
 WaitNMI:
   JMP WaitNMI
+
+; include engine de som
+  .include "sound_engine.asm"
+
 
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
@@ -657,13 +661,11 @@ HandleUp:
   AND #%00001000
   BEQ HandleDown
 
-  LDA #%10000001  ;Triangle channel on
-  STA $4008
-  LDA #$44        ;$042 is a G# in NTSC mode
-  STA $400A
+  JSR OpenSq1
+  LDA #$C9        ;$0C9 is a C# in NTSC mode
+  STA SQ1_LO      ;low 8 bits of period
   LDA #$00
-  STA $400B
-
+  STA SQ1_HI       ;high 3 bits of period
 
   LDA posy
   SEC
@@ -675,12 +677,8 @@ HandleDown:
   AND #%00000100
   BEQ HandleLeft
 
-  LDA #%10000000  ;Triangle channel off
-  STA $4008
-  LDA #$42        ;$042 is a G# in NTSC mode
-  STA $400A
-  LDA #$00
-  STA $400B
+  ; LDA #%10000000  ;Triangle channel off
+  ; STA TRI_CTRL
 
   LDA posy
   CLC
@@ -694,10 +692,11 @@ HandleLeft:
 
   LDA #%10000001  ;Triangle channel on
   STA $4008
-  LDA #$32        ;$038 is a G# in NTSC mode
-  STA $400A
-  LDA #$00
-  STA $400B
+
+  ; LDA #$42        ;$042 is a G# in NTSC mode
+  ; STA TRI_LO
+  ; LDA #$00
+  ; STA TRI_HI
 
   LDA blockx
   CLC
@@ -719,12 +718,7 @@ HandleRight:
   AND #%00000001
   BEQ UpdateSprites
 
-  LDA #%10000001  ;Triangle channel on
-  STA $4008
-  LDA #$36        ;$042 is a G# in NTSC mode
-  STA $400A
-  LDA #$00
-  STA $400B
+
 
   LDA blockx
   CLC
