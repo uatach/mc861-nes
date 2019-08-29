@@ -662,6 +662,8 @@ HandleUp:
   BEQ HandleDown
 
   JSR OpenSq1
+  JSR CloseSq2
+  JSR CloseTri
   LDA #$C9        ;$0C9 is a C# in NTSC mode
   STA SQ1_LO      ;low 8 bits of period
   LDA #$00
@@ -677,8 +679,9 @@ HandleDown:
   AND #%00000100
   BEQ HandleLeft
 
-  ; LDA #%10000000  ;Triangle channel off
-  ; STA TRI_CTRL
+  JSR CloseSq1
+  JSR CloseSq2
+  JSR CloseTri
 
   LDA posy
   CLC
@@ -690,13 +693,14 @@ HandleLeft:
   AND #%00000010
   BEQ HandleRight
 
-  LDA #%10000001  ;Triangle channel on
-  STA $4008
 
-  ; LDA #$42        ;$042 is a G# in NTSC mode
-  ; STA TRI_LO
-  ; LDA #$00
-  ; STA TRI_HI
+  JSR OpenTri
+  JSR CloseSq1
+  JSR CloseSq2
+  LDA #$42        ;$042 is a G# in NTSC mode
+  STA TRI_LO
+  LDA #$00
+  STA TRI_HI
 
   LDA blockx
   CLC
@@ -718,6 +722,13 @@ HandleRight:
   AND #%00000001
   BEQ UpdateSprites
 
+  JSR OpenSq2
+  JSR CloseSq1
+  JSR CloseTri
+  LDA #$D7        ;$0C9 is a C# in NTSC mode
+  STA SQ2_LO      ;low 8 bits of period
+  LDA #$00
+  STA SQ2_HI       ;high 3 bits of period
 
 
   LDA blockx
