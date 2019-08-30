@@ -55,3 +55,5 @@ CloseTri:
   LDA #%10000000  ;Triangle channel on
   STA TRI_CTRL
   RTS
+sound_play_frame:
+RTSs
