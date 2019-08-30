@@ -515,7 +515,7 @@ CalcBlockAddress:
 
   STMI #>NAMETABLE0, S,$01
 
-  LDXMI T, $03
+  LDXMI T, $01
   LDA blocks,X
 -
   CLC
@@ -547,8 +547,8 @@ CalcBlockAddress:
   RTS
 
 ClearBlock:
-  LDA latest
-  STAMI T,$03
+  ; LDA latest
+  ; STAMI T,$03
   JSR CalcBlockAddress
   JSR ClearTiles
   RTS
@@ -558,23 +558,11 @@ DrawBlock:
   JSR CalcBlockAddress
 
   ; loading sprite index
-  LDXMI T, $03
+  LDX latest
   LDA shapes,X
   STAMI T,$02
 
   JSR StoreTiles
-
-  ; LDX latest
-  ; TXA
-  ; ADC #$07
-  ; STA latest
-  ; JSR CalcBlockAddress
-  ; LDX latest
-  ; LDA shapes,X
-  ; ADC #$04
-  ; STAMI T,$02
-  ;
-  ; JSR StoreTiles
 
   RTS
 
@@ -643,7 +631,13 @@ NMI:
   JSR MoveBlockDown
 +
   LDA latest
-  STAMI T,$03
+  STAMI T,$01
+  JSR DrawBlock
+
+  LDA latest
+  CLC
+  ADC #$06
+  STAMI T, $01
   JSR DrawBlock
 
   JSR ReadControllers
