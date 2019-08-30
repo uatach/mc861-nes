@@ -83,14 +83,24 @@ ROWSIZE = $06
   S .dsb 8
 
   ; holds temporary values to free registers locally,
-  ; also used to pass parameters to subroutines.
+  ; also used to pass parameters to subroutines and the return values.
   T .dsb 8
 
-  ; holds blocks data (color, position) 13*6*2 = 156
+  ; blocks data
+  ; positions of each block, each values represent a position into
+  ; a matrix that is used to generate each blocks addres into the
+  ; ppu's memory
   blocks .dsb 80
+  ; each block's sprites index
   shapes .dsb 80
+  ; index into blocks and shapes for the blocks that are falling
   latest .dsb 1
-  blockx .dsb 1
+
+  ; top of each column, each value indicates the maximum position
+  ; a block may occupy into each column
+  tops .dsb 6
+  ; column's index where blocks are falling
+  column .dsb 1
 
   pointerLo .dsb 1
   pointerHi .dsb 1
@@ -294,8 +304,16 @@ LoadAttribute:
   STA posy
 
   STM #$00, latest
-  STM #$02, blockx
+  STM #$02, column
   JSR CreateBlocks
+
+  ; init column tops
+  STMI #$4D, tops,$00
+  STMI #$4E, tops,$01
+  STMI #$4F, tops,$02
+  STMI #$50, tops,$03
+  STMI #$51, tops,$04
+  STMI #$52, tops,$05
 
   jsr SoundInit
 
@@ -521,10 +539,10 @@ CreateBlocks:
 
 ; calculates a block address into the ppu memory
 ; parameters:
-; T0 - block index
+; 0 - block index
 ; returns:
-; T0 - high address
-; T1 - low address
+; 0 - high address
+; 1 - low address
 CalcBlockAddress:
   PHM S,$00
   PHM S,$01
@@ -601,10 +619,13 @@ DrawBlock:
 
   RTS
 
-
+; parameters:
+; 0 - block index
 MoveBlockDown:
+  ; load column top
+  LDX column
+  LDA tops,X
   LDX T
-  LDA #$4D
   CLC
   CMP blocks,X
   BCC +
@@ -747,11 +768,11 @@ HandleLeft:
   LDA #$00
   STA TRI_HI
 
-  LDA blockx
+  LDA column
   CLC
   CMP #$01
   BCC +
-  DEC blockx
+  DEC column
   LDA latest
   STA T
   JSR MoveBlockLeft
@@ -776,11 +797,11 @@ HandleRight:
   STA SQ2_HI       ;high 3 bits of period
 
 
-  LDA blockx
+  LDA column
   CLC
   CMP #$05
   BCS +
-  INC blockx
+  INC column
   LDA latest
   STA T
   JSR MoveBlockRight
