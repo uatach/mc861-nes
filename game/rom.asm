@@ -44,10 +44,12 @@ APUFLAGS = $4015
 SQ1_ENV = $4000
 SQ1_LO  = $4002
 SQ1_HI = $4003
+
 SQ2_ENV = $4004
 SQ2_SWEEP = $4005
 SQ2_LO  = $4006
 SQ2_HI = $4007
+
 TRI_CTRL = $4008
 TRI_LO = $400A
 TRI_HI = $400B
@@ -640,6 +642,10 @@ MoveBlockDown:
   CLC
   ADC blocks,X
   STA blocks,X
+  
+ 
+  JSR SFX_movingBlockDown; som para marcar a queda. Percebe-se que ele gera um lag na criação da imagem, provavelmente porque o nmi está cheio demais. 
+                          ; não parece afetar o funcionamento. Verificar se há uma posição melhor para colocar a chamada da função.
   RTS
 +
   ; block has landed
@@ -671,6 +677,7 @@ MoveBlockLeft:
   SEC
   SBC #$01
   STA blocks,X
+  Jsr SFX_movingBlocSideway
   RTS
 
 MoveBlockRight:
@@ -684,6 +691,7 @@ MoveBlockRight:
   CLC
   ADC #$01
   STA blocks,X
+  Jsr SFX_movingBlocSideway
   RTS
 
 ;----------------------------------------------------------------
@@ -746,10 +754,11 @@ HandleUp:
   JSR OpenSq1
   JSR CloseSq2
   JSR CloseTri
-  LDA #$C9        ;$0C9 is a C# in NTSC mode
-  STA SQ1_LO      ;low 8 bits of period
-  LDA #$00
-  STA SQ1_HI       ;high 3 bits of period
+
+  ;LDA #$C9        ;$0C9 is a C# in NTSC mode
+  ;STA SQ1_LO      ;low 8 bits of period
+ ; LDA #$00
+  ;STA SQ1_HI       ;high 3 bits of period
 
   LDA posy
   SEC
@@ -779,10 +788,10 @@ HandleLeft:
   JSR OpenTri
   JSR CloseSq1
   JSR CloseSq2
-  LDA #$42        ;$042 is a G# in NTSC mode
-  STA TRI_LO
-  LDA #$00
-  STA TRI_HI
+  ;LDA #$42        ;$042 is a G# in NTSC mode
+  ;STA TRI_LO
+  ;LDA #$00
+  ;STA TRI_HI
 
   LDA column
   CLC
@@ -807,11 +816,11 @@ HandleRight:
   JSR OpenSq2
   JSR CloseSq1
   JSR CloseTri
-  LDA #$D7        ;$0C9 is a C# in NTSC mode
-  STA SQ2_LO      ;low 8 bits of period
-  LDA #$00
-  STA SQ2_HI       ;high 3 bits of period
-
+  ;LDA #$D7        ;$0C9 is a C# in NTSC mode
+  ;STA SQ2_LO      ;low 8 bits of period
+  ;LDA #$00
+ ; STA SQ2_HI       ;high 3 bits of period
+;
 
   LDA column
   CLC

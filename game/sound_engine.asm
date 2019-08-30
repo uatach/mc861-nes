@@ -57,3 +57,28 @@ CloseTri:
   RTS
 sound_play_frame:
 RTS
+
+  SFX_movingBlockDown:
+ 
+    lda #%01011000 ;Duty Cycle 00, Volume 8 (half volume) duração no terceiro bit da esquerda pra direita
+    sta SQ2_ENV
+ 
+    lda #$C7   ;$0A9 is an E in NTSC mode
+    sta SQ2_LO
+ 
+    lda #%00100000
+    sta SQ2_HI
+ 
+
+ SFX_movingBlocSideway:
+ 
+    
+    lda #%01011000 ;Duty Cycle 00, Volume 8 (half volume) duração no terceiro bit da esquerda pra direita
+    sta SQ2_ENV
+ 
+    lda #$G2   ;$0A9 is an E in NTSC mode
+    sta SQ2_LO
+ 
+    lda #%00010000
+    sta SQ2_HI
+ 
