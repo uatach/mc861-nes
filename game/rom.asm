@@ -308,12 +308,12 @@ LoadAttribute:
   JSR CreateBlocks
 
   ; init column tops
-  STMI #$4D, tops,$00
-  STMI #$4E, tops,$01
-  STMI #$4F, tops,$02
-  STMI #$50, tops,$03
-  STMI #$51, tops,$04
-  STMI #$52, tops,$05
+  STMI #$48, tops,$00
+  STMI #$49, tops,$01
+  STMI #$4A, tops,$02
+  STMI #$4B, tops,$03
+  STMI #$4C, tops,$04
+  STMI #$4D, tops,$05
 
   jsr SoundInit
 
@@ -595,8 +595,6 @@ CalcBlockAddress:
 ; parameters:
 ; 0 - block index
 ClearBlock:
-  ; LDA latest
-  ; STAMI T,$03
   JSR CalcBlockAddress
   JSR ClearTiles
   RTS
@@ -629,16 +627,35 @@ MoveBlockDown:
   CLC
   CMP blocks,X
   BCC +
+  ; block still falling
   TXA
   PHA
   JSR ClearBlock
   PLA
   TAX
+  ; update block position
   LDA #ROWSIZE
   CLC
   ADC blocks,X
   STA blocks,X
+  RTS
 +
+  ; block has landed
+  ; update top
+  LDX column
+  LDA tops,X
+  SEC
+  SBC #$06
+  STA tops,X
+  ; update latest
+  LDA latest
+  CLC
+  ADC #$03
+  STA latest
+  ; create new blocks
+  JSR CreateBlocks
+  ; set column back to start
+  STM #$02, column
   RTS
 
 MoveBlockLeft:
