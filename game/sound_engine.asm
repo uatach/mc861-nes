@@ -56,4 +56,4 @@ CloseTri:
   STA TRI_CTRL
   RTS
 sound_play_frame:
-RTSs
+RTS
