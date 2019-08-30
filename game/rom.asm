@@ -146,6 +146,18 @@ ROWSIZE = $06
   STA addr,X
 .endm
 
+; PusH Memory with index to stash
+.macro PHM addr, idx
+  LDAMI addr,idx
+  PHA
+.endm
+
+; PulL Memory with index from stash
+.macro PLM addr, idx
+  PLA
+  STAMI addr,idx
+.endm
+
 
 ;----------------------------------------------------------------
 ; iNES header
@@ -507,15 +519,27 @@ CreateBlocks:
   RTS
 
 
+; calculates a block address into the ppu memory
+; parameters:
+; T0 - block index
+; returns:
+; T0 - high address
+; T1 - low address
 CalcBlockAddress:
+  PHM S,$00
+  PHM S,$01
+
+  ; init low address
   LDA #<NAMETABLE0
   CLC
   ADC #$0A
   STA S
 
+  ; init high address
   STMI #>NAMETABLE0, S,$01
 
-  LDXMI T, $01
+  ; load block position
+  LDX T
   LDA blocks,X
 -
   CLC
@@ -544,8 +568,14 @@ CalcBlockAddress:
 
   LDAMI S,$01
   STAMI T,$00
+
+  PLM S,$01
+  PLM S,$00
   RTS
 
+; removes a block from the ppu memory
+; parameters:
+; 0 - block index
 ClearBlock:
   ; LDA latest
   ; STAMI T,$03
@@ -553,12 +583,17 @@ ClearBlock:
   JSR ClearTiles
   RTS
 
-; TODO: receive index
+; places a block into the ppu memory
+; parameters:
+; 0 - block index
 DrawBlock:
+  LDA T
+  PHA
   JSR CalcBlockAddress
 
   ; loading sprite index
-  LDX latest
+  PLA
+  TAX
   LDA shapes,X
   STAMI T,$02
 
@@ -568,7 +603,7 @@ DrawBlock:
 
 
 MoveBlockDown:
-  LDXMI T,$01
+  LDX T
   LDA #$4D
   CLC
   CMP blocks,X
@@ -586,7 +621,7 @@ MoveBlockDown:
   RTS
 
 MoveBlockLeft:
-  LDXMI T,$01
+  LDX T
   TXA
   PHA
   JSR ClearBlock
@@ -599,7 +634,7 @@ MoveBlockLeft:
   RTS
 
 MoveBlockRight:
-  LDXMI T,$01
+  LDX T
   TXA
   PHA
   JSR ClearBlock
@@ -627,17 +662,17 @@ NMI:
   CMP #$00
   BNE +
   LDA latest
-  STAMI T,$01
+  STA T
   JSR MoveBlockDown
 +
   LDA latest
-  STAMI T,$01
+  STA T
   JSR DrawBlock
 
   LDA latest
   CLC
-  ADC #$06
-  STAMI T, $01
+  ADC #$01
+  STA T
   JSR DrawBlock
 
   JSR ReadControllers
@@ -718,7 +753,7 @@ HandleLeft:
   BCC +
   DEC blockx
   LDA latest
-  STAMI T,$01
+  STA T
   JSR MoveBlockLeft
 +
 
@@ -747,7 +782,7 @@ HandleRight:
   BCS +
   INC blockx
   LDA latest
-  STAMI T,$01
+  STA T
   JSR MoveBlockRight
 +
 
