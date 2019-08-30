@@ -835,6 +835,13 @@ HandleRight:
 ;----------------------------------------------------------------
 
 NMI:
+
+   pha     ;save registers
+    txa
+    pha
+    tya
+    pha
+
   ; send sprites to PPU
   STM #<SPRITES, OAMADDR
   STM #>SPRITES, OAMDMA
@@ -867,7 +874,15 @@ UpdateSprites:
   ; clean up PPU
   JSR EnableRendering
   ; graphics updates finished
-
+  jsr sound_play_frame    ;run our sound engine after all drawing code is done.
+                            ;this ensures our sound engine gets run once per frame.
+ 
+ pla     ;restore registers
+    tay
+    pla
+    tax
+    pla
+    rti
   RTI
 
 ;----------------------------------------------------------------
