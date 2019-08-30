@@ -712,8 +712,6 @@ StateA:
   STA T
   JSR DrawBlock
 
-  ; update state
-  STM #$01, state
   JMP UpdateSprites
 
 
@@ -831,8 +829,6 @@ HandleRight:
   ADC #$01
   STA posx
 
-  ; update state
-  STM #$00, state
   JMP UpdateSprites
 
 ;----------------------------------------------------------------
@@ -848,12 +844,16 @@ NMI:
   LDA state
   CMP #$00 ; TODO: add constant
   BNE +
+  ; update state
+  STM #$01, state
   JMP StateA
 +
 
   LDA state
   CMP #$01 ; TODO: add constant
   BNE +
+  ; update state
+  STM #$00, state
   JMP StateB
 +
 
