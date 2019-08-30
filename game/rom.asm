@@ -79,12 +79,14 @@ ROWSIZE = $06
   ; holds values that should survive jumps to subroutines,
   ; meaning that subroutines must restore these values before
   ; returning.
-  ; TODO: improve usages without restoring
   S .dsb 8
 
   ; holds temporary values to free registers locally,
   ; also used to pass parameters to subroutines and the return values.
   T .dsb 8
+
+  ; game state
+  state .dsb 1
 
   ; blocks data
   ; positions of each block, each values represent a position into
@@ -687,11 +689,8 @@ MoveBlockRight:
 ;----------------------------------------------------------------
 ;----------------------------------------------------------------
 
-NMI:
-  ; send sprites to PPU
-  STM #<SPRITES, OAMADDR
-  STM #>SPRITES, OAMDMA
-
+; TODO: rename
+StateA:
   ; update tiles
   JSR DrawPositionTiles
 
@@ -713,10 +712,13 @@ NMI:
   STA T
   JSR DrawBlock
 
-  JSR ReadControllers
+  ; update state
+  STM #$01, state
+  JMP UpdateSprites
 
 
-; TODO: improve
+; TODO: rename
+StateB:
 HandleA:
   LDA controller1
   AND #%10000000
@@ -737,7 +739,6 @@ HandleB:
   STMI #$00, T,$02
   STMI #$30, T,$03
   JSR StoreMushroomSprites
-
 
 HandleUp:
   LDA controller1
@@ -830,6 +831,31 @@ HandleRight:
   ADC #$01
   STA posx
 
+  ; update state
+  STM #$00, state
+  JMP UpdateSprites
+
+;----------------------------------------------------------------
+;----------------------------------------------------------------
+
+NMI:
+  ; send sprites to PPU
+  STM #<SPRITES, OAMADDR
+  STM #>SPRITES, OAMDMA
+
+  JSR ReadControllers
+
+  LDA state
+  CMP #$00 ; TODO: add constant
+  BNE +
+  JMP StateA
++
+
+  LDA state
+  CMP #$01 ; TODO: add constant
+  BNE +
+  JMP StateB
++
 
 UpdateSprites:
   STMI #$60, T,$00
