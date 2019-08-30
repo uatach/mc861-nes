@@ -702,14 +702,6 @@ StateA:
   ; update tiles
   JSR DrawPositionTiles
 
-  INC counter
-  LDA counter
-  CMP #$00
-  BNE +
-  LDA latest
-  STA T
-  JSR MoveBlockDown
-+
   LDA latest
   STA T
   JSR DrawBlock
@@ -725,6 +717,20 @@ StateA:
 
 ; TODO: rename
 StateB:
+  INC counter
+  LDA counter
+  CMP #$10
+  BNE +
+  STM #$00, counter
+  LDA latest
+  STA T
+  JSR MoveBlockDown
++
+  JMP UpdateSprites
+
+
+; TODO: rename
+StateC:
 HandleA:
   LDA controller1
   AND #%10000000
@@ -779,6 +785,11 @@ HandleDown:
   ADC #$01
   STA posy
 
+  JMP UpdateSprites
+
+
+; TODO: rename
+StateD:
 HandleLeft:
   LDA controller1
   AND #%00000010
@@ -811,7 +822,7 @@ HandleLeft:
 HandleRight:
   LDA controller1
   AND #%00000001
-  BEQ UpdateSprites
+  BEQ ++
 
   JSR OpenSq2
   JSR CloseSq1
@@ -838,6 +849,7 @@ HandleRight:
   ADC #$01
   STA posx
 
+++
   JMP UpdateSprites
 
 ;----------------------------------------------------------------
@@ -869,8 +881,24 @@ NMI:
   CMP #$01 ; TODO: add constant
   BNE +
   ; update state
-  STM #$00, state
+  STM #$02, state
   JMP StateB
++
+
+  LDA state
+  CMP #$02 ; TODO: add constant
+  BNE +
+  ; update state
+  STM #$03, state
+  JMP StateC
++
+
+  LDA state
+  CMP #$03 ; TODO: add constant
+  BNE +
+  ; update state
+  STM #$00, state
+  JMP StateD
 +
 
 UpdateSprites:
