@@ -643,9 +643,7 @@ MoveBlockDown:
   ADC blocks,X
   STA blocks,X
   
- 
-  JSR SFX_movingBlockDown; som para marcar a queda. Percebe-se que ele gera um lag na criação da imagem, provavelmente porque o nmi está cheio demais. 
-                          ; não parece afetar o funcionamento. Verificar se há uma posição melhor para colocar a chamada da função.
+  JSR SFX_movingBlockDown
   RTS
 +
   ; block has landed
@@ -757,15 +755,6 @@ HandleUp:
   AND #%00001000
   BEQ HandleDown
 
-  JSR OpenSq1
-  JSR CloseSq2
-  JSR CloseTri
-
-  ;LDA #$C9        ;$0C9 is a C# in NTSC mode
-  ;STA SQ1_LO      ;low 8 bits of period
- ; LDA #$00
-  ;STA SQ1_HI       ;high 3 bits of period
-
   LDA posy
   SEC
   SBC #$01
@@ -795,15 +784,6 @@ HandleLeft:
   AND #%00000010
   BEQ HandleRight
 
-
-  JSR OpenTri
-  JSR CloseSq1
-  JSR CloseSq2
-  ;LDA #$42        ;$042 is a G# in NTSC mode
-  ;STA TRI_LO
-  ;LDA #$00
-  ;STA TRI_HI
-
   LDA column
   CLC
   CMP #$01
@@ -823,15 +803,6 @@ HandleRight:
   LDA controller1
   AND #%00000001
   BEQ ++
-
-  JSR OpenSq2
-  JSR CloseSq1
-  JSR CloseTri
-  ;LDA #$D7        ;$0C9 is a C# in NTSC mode
-  ;STA SQ2_LO      ;low 8 bits of period
-  ;LDA #$00
- ; STA SQ2_HI       ;high 3 bits of period
-;
 
   LDA column
   CLC
@@ -856,13 +827,6 @@ HandleRight:
 ;----------------------------------------------------------------
 
 NMI:
-
-   pha     ;save registers
-    txa
-    pha
-    tya
-    pha
-
   ; send sprites to PPU
   STM #<SPRITES, OAMADDR
   STM #>SPRITES, OAMDMA
@@ -914,12 +878,6 @@ UpdateSprites:
   jsr sound_play_frame    ;run our sound engine after all drawing code is done.
                             ;this ensures our sound engine gets run once per frame.
  
- pla     ;restore registers
-    tay
-    pla
-    tax
-    pla
-    rti
   RTI
 
 ;----------------------------------------------------------------
