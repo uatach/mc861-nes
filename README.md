@@ -6,6 +6,13 @@ Participantes do grupo:
 * Matheus Mendes Araujo RA:156737 
 * Juliana Yuki Okubo RA:177320
 
+
+# EMULATOR
+O trabalho consiste em programar um emulador de NES. Utilizamos a linguagem Python. 
+
+# GAME
+
+
 O trabalho é desenvolver um jogo baseado em
 [Columns](https://www.youtube.com/watch?v=0p5yzwNA_Ls) /
 [Magic Jewelry](https://www.youtube.com/watch?v=s5scYfg9HHA)
@@ -21,3 +28,6 @@ A geração da rom do jogo pode ser feita através de:
 cd game
 asm6f rom.asm rom.nes
 ```
+
+
+
