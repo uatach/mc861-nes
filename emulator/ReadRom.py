@@ -54,9 +54,10 @@ def readRom(byte):
     prg = byte[16: prg_rom]
     chr = byte[prg_rom:chr_rom]
     print(prg_rom, chr_rom, len(prg), len(chr), len(byte))
+    return header, prg, chr
 
 def main():
-    byte = loadFile('../game/rom.nes')
+    byte = loadFile('/home/cc2016/ra177320/nesemu/bin/brk')
     readRom(byte)
 
 if __name__=='__main__':

@@ -1,8 +1,16 @@
+class Cpu(object):
+    def __init__(self, prg):
+        self.prg = prg
 
+    def instructionDecoder():
 
 void emula():
    memoria = LeArquivoCartucho()
    pc = PosicaoInicialMemoria;
+
+
+
+def main():
 
    while (1):
      instrucao = LeMemoria(pc);
@@ -17,5 +25,3 @@ void emula():
                printf("instrução inválida");
 
      ImprimeLinhaDebug()
-
-def main():
