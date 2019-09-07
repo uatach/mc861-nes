@@ -40,10 +40,12 @@
 #
 # }  // namespace NES
 
+
 def loadFile(path):
     with open(path, "rb") as fp:
         byte = fp.read()
     return byte
+
 
 def readRom(byte):
     header = byte[:16]
@@ -51,14 +53,16 @@ def readRom(byte):
     vbanks = header[5]
     prg_rom = 0x4000 * banks + 16
     chr_rom = 0x2000 * vbanks + prg_rom
-    prg = byte[16: prg_rom]
+    prg = byte[16:prg_rom]
     chr = byte[prg_rom:chr_rom]
     print(prg_rom, chr_rom, len(prg), len(chr), len(byte))
     return header, prg, chr
 
+
 def main():
-    byte = loadFile('/home/cc2016/ra177320/nesemu/bin/brk')
+    byte = loadFile("/home/cc2016/ra177320/nesemu/bin/brk")
     readRom(byte)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

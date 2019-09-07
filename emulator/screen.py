@@ -11,14 +11,14 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-pygame.init() # inicializa objetos
+pygame.init()  # inicializa objetos
 
-screen = pygame.display.set_mode([640, 480]) #tamanho
+screen = pygame.display.set_mode([640, 480])  # tamanho
 
 # carregando fonte
 font = pygame.font.SysFont(None, 55)
 
-pygame.display.set_caption('Emulator NES') #nome da janela
+pygame.display.set_caption("Emulator NES")  # nome da janela
 
 # preenchendo o fundo com preto
 screen.fill(BLACK)
@@ -29,7 +29,7 @@ pygame.draw.rect(screen, BLUE, [200, 210, 40, 20])
 pygame.draw.ellipse(screen, RED, [300, 200, 40, 40])
 pygame.draw.polygon(screen, GREEN, [[420, 200], [440, 240], [400, 240]])
 
-pygame.display.flip() # atualiza a janela
+pygame.display.flip()  # atualiza a janela
 
 time.sleep(5)
 
@@ -37,7 +37,7 @@ time.sleep(5)
 screen.fill(BLACK)
 
 # definindo o texto
-text = font.render('pygame', True, WHITE)
+text = font.render("pygame", True, WHITE)
 # copiando o texto para a superfície
 screen.blit(text, [250, 200])
 
