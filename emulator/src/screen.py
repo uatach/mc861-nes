@@ -20,28 +20,48 @@ font = pygame.font.SysFont(None, 55)
 
 pygame.display.set_caption("Emulator NES")  # nome da janela
 
-# preenchendo o fundo com preto
-screen.fill(BLACK)
+# variáveis da bola
+position_x = 300
+position_y = 200
+velocity_x = 1
+velocity_y = 1
 
-# desenhando na superfície
-pygame.draw.line(screen, WHITE, [10, 100], [630, 100], 5)
-pygame.draw.rect(screen, BLUE, [200, 210, 40, 20])
-pygame.draw.ellipse(screen, RED, [300, 200, 40, 40])
-pygame.draw.polygon(screen, GREEN, [[420, 200], [440, 240], [400, 240]])
+# iniciando o loop de jogo
+while True:
+    # PROCESSAMENTO DE ENTRADA
 
-pygame.display.flip()  # atualiza a janela
+    # capturando eventos
+    event = pygame.event.poll()
+    # caso o evento QUIT (clicar no x da janela) seja disparado
+    if event.type == pygame.QUIT:
+        # saia do loop finalizando o programa
+        break
 
-time.sleep(5)
+    # ATUALIZAÇÃO DO JOGO
 
-# preenchendo o fundo com preto
-screen.fill(BLACK)
+    # movendo a bola
+    position_x += velocity_x
+    position_y += velocity_y
 
-# definindo o texto
-text = font.render("pygame", True, WHITE)
-# copiando o texto para a superfície
-screen.blit(text, [250, 200])
+    # mudando a direção no eixo x nas bordas
+    if position_x > 600:
+        velocity_x = -1
+    elif position_x < 0:
+        velocity_x = 1
 
-# atualizando a tela
-pygame.display.flip()
+    # mudando a direção no eixo y nas bordas
+    if position_y > 440:
+        velocity_y = -1
+    elif position_y < 0:
+        velocity_y = 1
 
-time.sleep(5)
+    # DESENHO
+
+    # preenchendo o fundo com preto
+    screen.fill(BLACK)
+
+    # desenhando a bola
+    pygame.draw.ellipse(screen, RED, [position_x, position_y, 40, 40])
+
+    # atualizando a tela
+    pygame.display.flip()
