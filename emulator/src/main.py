@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 @click.command()
 @click.argument("filename", type=click.File("rb"))
-@click.option("-v", "--verbose", count=True)
+@click.option("-v", "--verbose", count=True, help="Increase verbosity.")
 def cli(filename, verbose):
     level = logging.WARNING - 10 * verbose
     logging.basicConfig(
