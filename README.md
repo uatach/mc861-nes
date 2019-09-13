@@ -25,6 +25,11 @@ pip install -e emulator
 pynesemu
 ```
 
+#### Testes
+
+```bash
+make test
+```
 
 ### Links relacionados:
 - [Py3NES](https://www.github.com/PyAndy/Py3NES)
