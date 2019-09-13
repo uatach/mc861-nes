@@ -6,7 +6,7 @@ setup(
     name=pynesemu.__name__,
     version=pynesemu.__version__,
     author="Group13",
-    url="",
+    url="https://gitlab.ic.unicamp.br/ra156737/mc861-nes",
     include_package_data=True,
     packages=find_packages(),
     install_requires=["attrs>=18.1", "click>=6.7"],
