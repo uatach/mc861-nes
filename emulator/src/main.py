@@ -1,6 +1,7 @@
 import click
 import logging
 
+from .cpu import CPU
 from .nes import NES
 
 
@@ -21,6 +22,7 @@ def cli(filename, verbose):
     log.debug("Loading cartridge")
     data = filename.read()
 
-    nes = NES()
+    cpu = CPU()
+    nes = NES(cpu)
 
     nes.run(data)
