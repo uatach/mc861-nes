@@ -1,27 +1,9 @@
-class Cpu(object):
-    def __init__(self, prg):
-        self.prg = prg
+import attr
 
-    def instructionDecoder():
+@attr.s
+class CPU(object):
+    def setup(self, data):
+        pass
 
-void emula():
-   memoria = LeArquivoCartucho()
-   pc = PosicaoInicialMemoria;
-
-
-
-def main():
-
-   while (1):
-     instrucao = LeMemoria(pc);
-     decodificada = DecodificaInstrucao(instrucao);
-
-     switch(decodificada):
-       case :
-
-                break;
-
-        default:
-               printf("instrução inválida");
-
-     ImprimeLinhaDebug()
+    def step(self):
+        pass
