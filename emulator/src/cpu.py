@@ -5,8 +5,8 @@ def print_status(cpu):
     print(
         "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} "
         "| y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {:08b} |"
-        #" MEM[0xffff] = 0x99 |"
-        "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
+        " MEM[0x{:04x}] = 0x{:02x} |"
+        "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status, cpu.pc, cpu.memory[cpu.pc])
     )
 
 
@@ -33,8 +33,24 @@ class CPU(object):
     def __getitem__(self, key):
         return self.registers.get(key, 0)
 
-    def setup(self, data):
-        self.data = data
+    def setup(self, rom):
+        # init empty memory
+        self.memory = 2**16 * [0]
+
+        # copy rom data to memory
+        size = len(rom)
+        start = 0x8000
+        end = start + size
+        self.memory[start:end] = rom
+
+        # setup mirroring
+        if size < 0x8000:
+            start = end
+            end = start + size
+            self.memory[start:end] = rom
+
+        # setting pc to the reset handler
+        self.pc = (self.memory[0xfffa] << 8) + self.memory[0xfffb]
 
     def step(self):
         self.pc = (self.pc + 1) % 2**16
