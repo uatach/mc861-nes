@@ -11,6 +11,20 @@
 
 O trabalho consiste em programar um emulador de NES em Python. 
 
+### Desenvolvimento
+
+#### Instalação
+
+*NOTA*: Instalando deste modo, você pode desenvolver normalmente sem precisar
+reinstalar o pacote!
+
+```bash
+cd mc861-nes
+git pull
+pip install -e emulator
+pynesemu
+```
+
 
 ### Links relacionados:
 - [Py3NES](https://www.github.com/PyAndy/Py3NES)
