@@ -1,2 +1,5 @@
 game/asm6f
 game/rom.nes
+
+*egg-info
+__pycache__
