@@ -3,8 +3,9 @@ import logging
 
 from .nes import NES
 
+
 @click.command()
-@click.argument('filename', type=click.File('rb'))
+@click.argument("filename", type=click.File("rb"))
 def cli(filename):
     data = filename.read()
 
