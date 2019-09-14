@@ -50,8 +50,15 @@ class CPU(object):
             self.memory[start:end] = rom
 
         # setting pc to the reset handler
-        self.pc = (self.memory[0xfffa] << 8) + self.memory[0xfffb]
+        self.pc = (self.memory[0xfffd] << 8) + self.memory[0xfffc]
 
     def step(self):
-        self.pc = (self.pc + 1) % 2**16
+        print(self.memory[0xc000:0xc010])
+        instruction = self.memory[self.pc]
+        print("instruction", hex(instruction))
+        if instruction==0x4C:
+            self.pc = (self.memory[self.pc+2] << 8) + self.memory[self.pc+1]
+            print("jump absolute")    
+        else:
+            self.pc = (self.pc + 1) % 2**16
         print_status(self)

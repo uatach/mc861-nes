@@ -30,5 +30,5 @@ class NES(object):
 
         self.cpu.setup(prg_rom)
 
-        while True:
+        for _ in range(10):
             self.cpu.step()
