@@ -52,6 +52,7 @@ class CPU(object):
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
         }
+        log.debug('Handling %d opcodes', len(self.opcodes))
 
     def setup(self, rom):
         # init empty memory
@@ -91,15 +92,18 @@ class CPU(object):
         return value
 
     def _adc_imm(self):
-        # FIXME:
+        # FIXME: need to set flags
+        # TODO: write tests
         self.a = self.pc + 1
 
     def _adc_zp(self):
-        # FIXME:
+        # FIXME: need to set flags
+        # TODO: write tests
         self.a = self.memory[self.pc + 1]
 
     def _and_imm(self):
-        # FIXME:
+        # FIXME: need to set flags
+        # TODO: write tests
         self.a = self.pc + 1 & self.a
 
     def _asl(self):
@@ -111,6 +115,8 @@ class CPU(object):
         self.__check_flag_negative()
 
     def _brk(self):
+        # set break flag
+        self.status |= 0b00010000
         # TODO: needs better way to signal interruption
         raise Exception("brk")
 
