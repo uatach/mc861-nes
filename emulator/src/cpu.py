@@ -56,19 +56,17 @@ class CPU(object):
         print(self.memory[0xc000:0xc010])
         instruction = self.memory[self.pc]
         print("instruction", hex(instruction))
-        #jump
-        if instruction==0x4C:
+        if instruction==0x4C: #jump
             self.pc = (self.memory[self.pc+2] << 8) + self.memory[self.pc+1]
             print("jump absolute")
         else:
-            #adc immediate
-            if instruction==0x69:
+            if instruction==0x69: #adc immediate
                 self.a = self.pc+1
-            #adc zero page
-            elif instruction==0x65:
+            elif instruction==0x65: #adc zero page
                 self.a = self.memory[self.pc+1]
-            #and immediate
-            elif instruction ==0x29:
+            elif instruction ==0x29: #and immediate
                 self.a = self.pc+1 & self.a
+            elif instruction==0x0A: #asl accumulator
+                self.a = self.a << 1
             self.pc = (self.pc + 1) % 2**16
         print_status(self)
