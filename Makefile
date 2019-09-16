@@ -1,12 +1,12 @@
-TST=./emulator/tst
-RES=./emulator/res
-BIN=./emulator/bin
-LOG=./emulator/log
-EXT=./emulator/ext
-NES=./emulator/bin/nesemu
+TST=.\emulator\tst
+RES=.\emulator\res
+BIN=.\emulator\bin
+LOG=.\emulator\log
+EXT=.\emulator\ext
+NES=.\emulator\bin\nesemu
 
-TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
-CROSS_AS=${EXT}/asm6/asm6
+TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}'\'*.s)))))
+CROSS_AS=${EXT}\asm6\asm6
 
 all: ${BIN} ${LOG} ${NES}
 
@@ -53,4 +53,3 @@ setup:
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/*
-

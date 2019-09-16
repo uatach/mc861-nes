@@ -6,3 +6,6 @@ emulator/log
 
 *egg-info
 __pycache__
+
+Makefile
+*.exe
