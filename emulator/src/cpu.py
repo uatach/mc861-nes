@@ -28,6 +28,8 @@ class Register(object):
 
 @attr.s
 class CPU(object):
+    memory = attr.ib(None)
+
     def __attrs_post_init__(self):
         # setting class properties
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
@@ -43,19 +45,23 @@ class CPU(object):
             0x6C: self._jmp_ind,
             0x65: self._adc_zp,
             0x69: self._adc_imm,
+            0x78: self._sei,
             0x85: self._sta_zp,
             0x8D: self._sta_abs,
+            0x9A: self._txs,
             0xA2: self._ldx_imm,
             0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
             0xA9: self._lda_imm,
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
+            0xD8: self._cld,
         }
         log.debug('Handling %d opcodes', len(self.opcodes))
 
     def setup(self, rom):
         # init empty memory
+        # TODO: use received memory
         self.memory = 2 ** 16 * [0]
 
         # copy rom data to memory
@@ -123,6 +129,10 @@ class CPU(object):
     def _clc(self):
         self.status &= 0b11111110
 
+    def _cld(self):
+        # TODO: write tests
+        self.status &= 0b11110111
+
     def _jmp_abs(self):
         self.pc = self._read_double()
 
@@ -172,6 +182,10 @@ class CPU(object):
     def _sec(self):
         self.status |= 0b00000001
 
+    def _sei(self):
+        # TODO: write tests
+        self.status |= 0b00000100
+
     def _sta_abs(self):
         address = self._read_double()
         self.memory[address] = self.a
@@ -181,6 +195,10 @@ class CPU(object):
         address = self._read_word()
         self.memory[address] = self.a
         return address
+
+    def _txs(self):
+        # TODO: write tests
+        self.sp = self.x
 
     # private stuff
 
