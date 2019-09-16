@@ -1,4 +1,7 @@
 import attr
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def print_status(cpu, address=None):
@@ -7,7 +10,7 @@ def print_status(cpu, address=None):
         "| y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {:08b} |"
         "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
-    if address:
+    if address is not None:
         msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, cpu.memory[address])
     print(msg)
 
@@ -25,15 +28,10 @@ class Register(object):
 
 @attr.s
 class CPU(object):
-    registers = dict()
-
     def __attrs_post_init__(self):
         # setting class properties
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
             setattr(CPU, reg, Register())
-
-    def __getitem__(self, key):
-        return self.registers.get(key, 0)
 
     def setup(self, rom):
         # init empty memory
@@ -55,11 +53,15 @@ class CPU(object):
         self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
 
     def step(self):
+        address = None
         instruction = self.memory[self.pc]
+        log.debug('instruction: 0x%02x', instruction)
+
         if instruction == 0x00:
-            raise Exception()
+            raise Exception('brk')
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
         else:
             self.pc = (self.pc + 1) % 2 ** 16
-        print_status(self)
+
+        print_status(self, address)

@@ -33,5 +33,6 @@ class NES(object):
         for _ in range(10):
             try:
                 self.cpu.step()
-            except:
+            except Exception as e:
+                log.error(e)
                 break
