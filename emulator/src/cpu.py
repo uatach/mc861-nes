@@ -40,6 +40,7 @@ class CPU(object):
             0x29: self._and_imm,
             0x38: self._sec,
             0x4C: self._jmp_abs,
+            0x6C: self._jmp_ind,
             0x65: self._adc_zp,
             0x69: self._adc_imm,
             0x85: self._sta_zp,
@@ -118,6 +119,11 @@ class CPU(object):
 
     def _jmp_abs(self):
         self.pc = self._read_double()
+
+    def _jmp_ind(self):
+        address = self._read_double()
+        value = (self.memory[address + 1] << 8) + self.memory[address]
+        self.pc = value
 
     def _lda_imm(self):
         self.a = self._read_word()
