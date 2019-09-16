@@ -39,9 +39,12 @@ class CPU(object):
             0x38: self._sec,
             0x85: self._sta,
             0x8D: self._sta,
+            0xA2: self._ldx_imm,
             0xA5: self._lda,
+            0xA6: self._ldx_zp,
             0xA9: self._lda,
             0xAD: self._lda,
+            0xAE: self._ldx_abs,
         }
 
     def setup(self, rom):
@@ -90,8 +93,8 @@ class CPU(object):
             # TODO: needs better way to signal interruption
             raise Exception("brk")
 
-        elif instruction in (0x0A, 0x18, 0x38):
-            self.opcodes[instruction]()
+        elif instruction in (0x0A, 0x18, 0x38, 0xA2, 0xA6, 0xAE):
+            address = self.opcodes[instruction]()
 
         elif instruction == 0x4C:  # jmp
             self.pc = self._read_double()
@@ -144,12 +147,30 @@ class CPU(object):
         self.__check_flag_zero()
         self.__check_flag_negative()
 
+    def _ldx_abs(self):
+        address = self._read_double()
+        self.x = self.memory[address]
+        self.__check_flag_zero()
+        self.__check_flag_negative()
+        return address
+
+    def _ldx_imm(self):
+        self.x = self._read_word()
+        self.__check_flag_zero()
+        self.__check_flag_negative()
+
+    def _ldx_zp(self):
+        address = self._read_word()
+        self.x = self.memory[address]
+        self.__check_flag_zero()
+        self.__check_flag_negative()
+        return address
+
     def _sec(self):
         self.status |= 0b00000001
 
     def _sta(self, address):
         self.memory[address] = self.a
-
 
     # private stuff
 
