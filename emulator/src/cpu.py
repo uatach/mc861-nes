@@ -33,6 +33,8 @@ class CPU(object):
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
             setattr(CPU, reg, Register())
 
+        self.opcodes = {0xA5: self._lda, 0xA9: self._lda}
+
     def setup(self, rom):
         # init empty memory
         self.memory = 2 ** 16 * [0]
@@ -81,29 +83,13 @@ class CPU(object):
         elif instruction == 0xA5:
             self.pc = (self.pc + 1) % 2 ** 16
             address = self.memory[self.pc]
-            self.a = self.memory[address]
-
-            if self.a == 0:
-                self.status |= 0b00000010
-            else:
-                self.status &= 0b11111101
-
-            if self.a & 0b10000000:
-                self.status |= 0b10000000
-
+            value = self.memory[address]
+            self.opcodes[instruction](value)
             self.pc = (self.pc + 1) % 2 ** 16
         elif instruction == 0xA9:
             self.pc = (self.pc + 1) % 2 ** 16
-            self.a = self.memory[self.pc]
-
-            if self.a == 0:
-                self.status |= 0b00000010
-            else:
-                self.status &= 0b11111101
-
-            if self.a & 0b10000000:
-                self.status |= 0b10000000
-
+            value = self.memory[self.pc]
+            self.opcodes[instruction](value)
             self.pc = (self.pc + 1) % 2 ** 16
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
@@ -111,3 +97,14 @@ class CPU(object):
             self.pc = (self.pc + 1) % 2 ** 16
 
         print_status(self, address)
+
+    def _lda(self, value):
+        self.a = self.memory[self.pc]
+
+        if self.a == 0:
+            self.status |= 0b00000010
+        else:
+            self.status &= 0b11111101
+
+        if self.a & 0b10000000:
+            self.status |= 0b10000000
