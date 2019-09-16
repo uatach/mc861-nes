@@ -79,11 +79,12 @@ class CPU(object):
 
     def step(self):
         address = None
-        instruction = self.memory[self.pc]
-        self.__pc_increase()
+        instruction = self._read_word()
 
         log.debug("instruction: 0x%02X", instruction)
+        # TODO: remove huge switch
         if instruction == 0x00:
+            # TODO: needs better way to signal interruption
             raise Exception("brk")
         elif instruction == 0x0A:  # asl accumulator
             self.opcodes[instruction]()
@@ -98,10 +99,10 @@ class CPU(object):
             value = self.memory[address]
             self.opcodes[instruction](value)
         elif instruction == 0xA9:
-            value = self._read_word()
-            self.opcodes[instruction](value)
+            address = self._read_word()
+            self.opcodes[instruction](address)
         elif instruction == 0x4C:
-            self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
+            self.pc = self._read_double()
 
         print_status(self, address)
 
