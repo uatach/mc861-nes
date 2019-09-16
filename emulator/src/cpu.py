@@ -81,22 +81,25 @@ class CPU(object):
         if instruction == 0x00:
             raise Exception("brk")
         elif instruction == 0xA5:
-            self.pc = (self.pc + 1) % 2 ** 16
+            self.__pc_increase()
             address = self.memory[self.pc]
             value = self.memory[address]
             self.opcodes[instruction](value)
-            self.pc = (self.pc + 1) % 2 ** 16
+            self.__pc_increase()
         elif instruction == 0xA9:
-            self.pc = (self.pc + 1) % 2 ** 16
+            self.__pc_increase()
             value = self.memory[self.pc]
             self.opcodes[instruction](value)
-            self.pc = (self.pc + 1) % 2 ** 16
+            self.__pc_increase()
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
         else:
-            self.pc = (self.pc + 1) % 2 ** 16
+            self.__pc_increase()
 
         print_status(self, address)
+
+    def __pc_increase(self):
+        self.pc = (self.pc + 1) % 2 ** 16
 
     def _lda(self, value):
         self.a = self.memory[self.pc]
