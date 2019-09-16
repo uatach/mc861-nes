@@ -55,11 +55,25 @@ class CPU(object):
     def step(self):
         address = None
         instruction = self.memory[self.pc]
-        log.debug('instruction: 0x%02x', instruction)
+        log.debug("instruction: 0x%02x", instruction)
 
         if instruction == 0x00:
-            raise Exception('brk')
-        elif instruction == 0xa9:
+            raise Exception("brk")
+        elif instruction == 0xA5:
+            self.pc = (self.pc + 1) % 2 ** 16
+            address = self.memory[self.pc]
+            self.a = self.memory[address]
+
+            if self.a == 0:
+                self.status |= 0b00000010
+            else:
+                self.status &= 0b11111101
+
+            if self.a & 0b10000000:
+                self.status |= 0b10000000
+
+            self.pc = (self.pc + 1) % 2 ** 16
+        elif instruction == 0xA9:
             self.pc = (self.pc + 1) % 2 ** 16
             self.a = self.memory[self.pc]
 
