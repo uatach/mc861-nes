@@ -59,6 +59,19 @@ class CPU(object):
 
         if instruction == 0x00:
             raise Exception('brk')
+        elif instruction == 0xa9:
+            self.pc = (self.pc + 1) % 2 ** 16
+            self.a = self.memory[self.pc]
+
+            if self.a == 0:
+                self.status |= 0b00000010
+            else:
+                self.status &= 0b11111101
+
+            if self.a & 0b10000000:
+                self.status |= 0b10000000
+
+            self.pc = (self.pc + 1) % 2 ** 16
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
         else:
