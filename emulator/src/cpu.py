@@ -34,11 +34,13 @@ class CPU(object):
             setattr(CPU, reg, Register())
 
         self.opcodes = {
+            0x00: self._brk,
             0x0A: self._asl,
             0x18: self._clc,
             0x38: self._sec,
-            0x85: self._sta,
-            0x8D: self._sta,
+            0x4c: self._jmp_abs,
+            0x85: self._sta_zp,
+            0x8D: self._sta_abs,
             0xA2: self._ldx_imm,
             0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
@@ -88,23 +90,7 @@ class CPU(object):
         instruction = self._read_word()
 
         log.debug("instruction: 0x%02X", instruction)
-        # TODO: remove huge switch
-        if instruction == 0x00:
-            # TODO: needs better way to signal interruption
-            raise Exception("brk")
-
-        elif instruction in (0x0A, 0x18, 0x38, 0xA2, 0xA5, 0xA6, 0xA9, 0xAD, 0xAE):
-            address = self.opcodes[instruction]()
-
-        elif instruction == 0x4C:  # jmp
-            self.pc = self._read_double()
-
-        elif instruction == 0x85:  # sta zeropage
-            address = self._read_word()
-            self.opcodes[instruction](address)
-        elif instruction == 0x8D:  # sta absolute
-            address = self._read_double()
-            self.opcodes[instruction](address)
+        address = self.opcodes[instruction]()
 
         print_status(self, address)
 
@@ -127,8 +113,15 @@ class CPU(object):
         self.__check_flag_zero()
         self.__check_flag_negative()
 
+    def _brk(self):
+        # TODO: needs better way to signal interruption
+        raise Exception('brk')
+
     def _clc(self):
         self.status &= 0b11111110
+
+    def _jmp_abs(self):
+        self.pc = self._read_double()
 
     def _lda_imm(self):
         self.a = self._read_word()
@@ -171,8 +164,15 @@ class CPU(object):
     def _sec(self):
         self.status |= 0b00000001
 
-    def _sta(self, address):
+    def _sta_abs(self):
+        address = self._read_double()
         self.memory[address] = self.a
+        return address
+
+    def _sta_zp(self):
+        address = self._read_word()
+        self.memory[address] = self.a
+        return address
 
     # private stuff
 
