@@ -117,9 +117,6 @@ class CPU(object):
 
         print_status(self, address)
 
-    def __pc_increase(self):
-        self.pc = (self.pc + 1) % 2 ** 16
-
     def _read_word(self):
         value = self.memory[self.pc]
         self.__pc_increase()
@@ -136,35 +133,35 @@ class CPU(object):
         self.status |= (self.a & 0b10000000) >> 7
         # shift left
         self.a = (self.a << 1) & 0b11111111
-
-        # check zero flag
-        if self.a == 0:
-            self.status |= 0b00000010
-        else:
-            self.status &= 0b11111101
-
-        # check negative flag
-        if self.a & 0b10000000:
-            self.status |= 0b10000000
+        self.__check_flag_zero()
+        self.__check_flag_negative()
 
     def _clc(self):
         self.status &= 0b11111110
 
     def _lda(self, value):
         self.a = value
-
-        # check zero flag
-        if self.a == 0:
-            self.status |= 0b00000010
-        else:
-            self.status &= 0b11111101
-
-        # check negative flag
-        if self.a & 0b10000000:
-            self.status |= 0b10000000
+        self.__check_flag_zero()
+        self.__check_flag_negative()
 
     def _sec(self):
         self.status |= 0b00000001
 
     def _sta(self, address):
         self.memory[address] = self.a
+
+
+    # private stuff
+
+    def __pc_increase(self):
+        self.pc = (self.pc + 1) % 2 ** 16
+
+    def __check_flag_zero(self):
+        if self.a == 0:
+            self.status |= 0b00000010
+        else:
+            self.status &= 0b11111101
+
+    def __check_flag_negative(self):
+        if self.a & 0b10000000:
+            self.status |= 0b10000000
