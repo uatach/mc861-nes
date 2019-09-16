@@ -34,6 +34,7 @@ class CPU(object):
             setattr(CPU, reg, Register())
 
         self.opcodes = {
+            0x0A: self._asl,
             0x85: self._sta,
             0x8D: self._sta,
             0xA5: self._lda,
@@ -73,8 +74,6 @@ class CPU(object):
                 self.a = self.memory[self.pc + 1]
             elif instruction == 0x29:  # and immediate
                 self.a = self.pc + 1 & self.a
-            elif instruction == 0x0A:  # asl accumulator
-                self.a = self.a << 1
             self.pc = (self.pc + 1) % 2 ** 16
         print_status(self)
 
@@ -86,6 +85,8 @@ class CPU(object):
         log.debug("instruction: 0x%02X", instruction)
         if instruction == 0x00:
             raise Exception("brk")
+        elif instruction == 0x0A:  # asl accumulator
+            self.opcodes[instruction]()
         elif instruction == 0x85:
             address = self._read_word()
             self.opcodes[instruction](address)
@@ -118,14 +119,32 @@ class CPU(object):
         self.__pc_increase()
         return value
 
-    def _lda(self, value):
-        self.a = value
+    def _asl(self):
+        # set carry flag
+        self.status |= (self.a & 0b10000000) >> 7
+        # shift left
+        self.a = (self.a << 1) & 0b11111111
 
+        # check zero flag
         if self.a == 0:
             self.status |= 0b00000010
         else:
             self.status &= 0b11111101
 
+        # check negative flag
+        if self.a & 0b10000000:
+            self.status |= 0b10000000
+
+    def _lda(self, value):
+        self.a = value
+
+        # check zero flag
+        if self.a == 0:
+            self.status |= 0b00000010
+        else:
+            self.status &= 0b11111101
+
+        # check negative flag
         if self.a & 0b10000000:
             self.status |= 0b10000000
 
