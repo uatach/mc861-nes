@@ -37,7 +37,7 @@ class CPU(object):
 
     def setup(self, rom):
         # init empty memory
-        self.memory = 2**16 * [0]
+        self.memory = 2 ** 16 * [0]
 
         # copy rom data to memory
         size = len(rom)
@@ -52,15 +52,14 @@ class CPU(object):
             self.memory[start:end] = rom
 
         # setting pc to the reset handler
-        self.pc = (self.memory[0xfffd] << 8) + self.memory[0xfffc]
+        self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
 
     def step(self):
-        print(self.memory[0xc000:0xc010])
         instruction = self.memory[self.pc]
-        print("instruction", hex(instruction))
-        if instruction==0x4C:
-            self.pc = (self.memory[self.pc+2] << 8) + self.memory[self.pc+1]
-            print("jump absolute")    
+        if instruction == 0x00:
+            raise Exception()
+        elif instruction == 0x4C:
+            self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
         else:
-            self.pc = (self.pc + 1) % 2**16
+            self.pc = (self.pc + 1) % 2 ** 16
         print_status(self)
