@@ -87,23 +87,18 @@ class CPU(object):
         if instruction == 0x00:
             raise Exception("brk")
         elif instruction == 0x85:
-            address = self.memory[self.pc]
+            address = self._read_word()
             self.opcodes[instruction](address)
-            self.__pc_increase()
         elif instruction == 0x8D:
-            address = self._get_address(self.pc)
+            address = self._read_double()
             self.opcodes[instruction](address)
-            self.__pc_increase()
-            self.__pc_increase()
         elif instruction == 0xA5:
-            address = self.memory[self.pc]
+            address = self._read_word()
             value = self.memory[address]
             self.opcodes[instruction](value)
-            self.__pc_increase()
         elif instruction == 0xA9:
-            value = self.memory[self.pc]
+            value = self._read_word()
             self.opcodes[instruction](value)
-            self.__pc_increase()
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
 
@@ -112,11 +107,19 @@ class CPU(object):
     def __pc_increase(self):
         self.pc = (self.pc + 1) % 2 ** 16
 
-    def _get_address(self, base):
-        return (self.memory[base + 1] << 8) + self.memory[base]
+    def _read_word(self):
+        value = self.memory[self.pc]
+        self.__pc_increase()
+        return value
+
+    def _read_double(self):
+        value = (self.memory[self.pc + 1] << 8) + self.memory[self.pc]
+        self.__pc_increase()
+        self.__pc_increase()
+        return value
 
     def _lda(self, value):
-        self.a = self.memory[self.pc]
+        self.a = value
 
         if self.a == 0:
             self.status |= 0b00000010
