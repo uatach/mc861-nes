@@ -33,7 +33,12 @@ class CPU(object):
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
             setattr(CPU, reg, Register())
 
-        self.opcodes = {0xA5: self._lda, 0xA9: self._lda}
+        self.opcodes = {
+            0x85: self._sta,
+            0x8D: self._sta,
+            0xA5: self._lda,
+            0xA9: self._lda,
+        }
 
     def setup(self, rom):
         # init empty memory
@@ -76,30 +81,39 @@ class CPU(object):
     def step(self):
         address = None
         instruction = self.memory[self.pc]
-        log.debug("instruction: 0x%02x", instruction)
+        self.__pc_increase()
 
+        log.debug("instruction: 0x%02X", instruction)
         if instruction == 0x00:
             raise Exception("brk")
-        elif instruction == 0xA5:
+        elif instruction == 0x85:
+            address = self.memory[self.pc]
+            self.opcodes[instruction](address)
             self.__pc_increase()
+        elif instruction == 0x8D:
+            address = self._get_address(self.pc)
+            self.opcodes[instruction](address)
+            self.__pc_increase()
+            self.__pc_increase()
+        elif instruction == 0xA5:
             address = self.memory[self.pc]
             value = self.memory[address]
             self.opcodes[instruction](value)
             self.__pc_increase()
         elif instruction == 0xA9:
-            self.__pc_increase()
             value = self.memory[self.pc]
             self.opcodes[instruction](value)
             self.__pc_increase()
         elif instruction == 0x4C:
             self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
-        else:
-            self.__pc_increase()
 
         print_status(self, address)
 
     def __pc_increase(self):
         self.pc = (self.pc + 1) % 2 ** 16
+
+    def _get_address(self, base):
+        return (self.memory[base + 1] << 8) + self.memory[base]
 
     def _lda(self, value):
         self.a = self.memory[self.pc]
@@ -111,3 +125,6 @@ class CPU(object):
 
         if self.a & 0b10000000:
             self.status |= 0b10000000
+
+    def _sta(self, address):
+        self.memory[address] = self.a
