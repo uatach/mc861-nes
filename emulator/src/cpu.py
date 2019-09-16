@@ -1,13 +1,15 @@
 import attr
 
 
-def print_status(cpu):
-    print(
+def print_status(cpu, address=None):
+    msg = (
         "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} "
         "| y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {:08b} |"
-        " MEM[0x{:04x}] = 0x{:02x} |"
-        "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status, cpu.pc, cpu.memory[cpu.pc])
+        "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
+    if address:
+        msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, cpu.memory[address])
+    print(msg)
 
 
 @attr.s
