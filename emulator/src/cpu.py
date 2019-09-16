@@ -40,10 +40,10 @@ class CPU(object):
             0x85: self._sta,
             0x8D: self._sta,
             0xA2: self._ldx_imm,
-            0xA5: self._lda,
+            0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
-            0xA9: self._lda,
-            0xAD: self._lda,
+            0xA9: self._lda_imm,
+            0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
         }
 
@@ -93,7 +93,7 @@ class CPU(object):
             # TODO: needs better way to signal interruption
             raise Exception("brk")
 
-        elif instruction in (0x0A, 0x18, 0x38, 0xA2, 0xA6, 0xAE):
+        elif instruction in (0x0A, 0x18, 0x38, 0xA2, 0xA5, 0xA6, 0xA9, 0xAD, 0xAE):
             address = self.opcodes[instruction]()
 
         elif instruction == 0x4C:  # jmp
@@ -105,18 +105,6 @@ class CPU(object):
         elif instruction == 0x8D:  # sta absolute
             address = self._read_double()
             self.opcodes[instruction](address)
-
-        elif instruction == 0xA5:  # lda zeropage
-            address = self._read_word()
-            value = self.memory[address]
-            self.opcodes[instruction](value)
-        elif instruction == 0xA9:  # lda immediate
-            value = self._read_word()
-            self.opcodes[instruction](value)
-        elif instruction == 0xAD:  # lda absolute
-            address = self._read_double()
-            value = self.memory[address]
-            self.opcodes[instruction](value)
 
         print_status(self, address)
 
@@ -142,10 +130,24 @@ class CPU(object):
     def _clc(self):
         self.status &= 0b11111110
 
-    def _lda(self, value):
-        self.a = value
+    def _lda_imm(self):
+        self.a = self._read_word()
         self.__check_flag_zero()
         self.__check_flag_negative()
+
+    def _lda_abs(self):
+        address = self._read_double()
+        self.a = self.memory[address]
+        self.__check_flag_zero()
+        self.__check_flag_negative()
+        return address
+
+    def _lda_zp(self):
+        address = self._read_word()
+        self.a = self.memory[address]
+        self.__check_flag_zero()
+        self.__check_flag_negative()
+        return address
 
     def _ldx_abs(self):
         address = self._read_double()
