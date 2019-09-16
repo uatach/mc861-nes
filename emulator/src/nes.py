@@ -31,4 +31,8 @@ class NES(object):
         self.cpu.setup(prg_rom)
 
         for _ in range(10):
-            self.cpu.step()
+            try:
+                self.cpu.step()
+            except Exception as e:
+                log.error(e)
+                break
