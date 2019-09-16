@@ -35,6 +35,8 @@ class CPU(object):
 
         self.opcodes = {
             0x0A: self._asl,
+            0x18: self._clc,
+            0x38: self._sec,
             0x85: self._sta,
             0x8D: self._sta,
             0xA5: self._lda,
@@ -88,7 +90,7 @@ class CPU(object):
             # TODO: needs better way to signal interruption
             raise Exception("brk")
 
-        elif instruction == 0x0A:  # asl accumulator
+        elif instruction in (0x0A, 0x18, 0x38):
             self.opcodes[instruction]()
 
         elif instruction == 0x4C:  # jmp
@@ -145,6 +147,9 @@ class CPU(object):
         if self.a & 0b10000000:
             self.status |= 0b10000000
 
+    def _clc(self):
+        self.status &= 0b11111110
+
     def _lda(self, value):
         self.a = value
 
@@ -157,6 +162,9 @@ class CPU(object):
         # check negative flag
         if self.a & 0b10000000:
             self.status |= 0b10000000
+
+    def _sec(self):
+        self.status |= 0b00000001
 
     def _sta(self, address):
         self.memory[address] = self.a

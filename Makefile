@@ -31,7 +31,7 @@ test: ${BIN} ${LOG} ${NES} ${TESTS}
 			result="${LOG}/$$(basename $$test).log"; \
 			expected="${RES}/$$(basename $$test).r"; \
 			printf "Running $$test: "; \
-			pynesemu $$test > $$result 2>&1; \
+			pynesemu $$test > $$result; \
 			errors=`diff -y --suppress-common-lines $$expected $$result | grep '^' | wc -l`; \
 			if [ "$$errors" -eq 0 ]; then \
 				printf "\033[0;32mPASSED\033[0m\n"; \
