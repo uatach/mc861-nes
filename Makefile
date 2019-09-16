@@ -12,7 +12,7 @@ all: ${BIN} ${LOG} ${NES}
 
 ${NES}:
 	# TODO: not sure if this goes here
-	pip install -e emulator
+	pip install --user emulator/
 
 ${BIN}:
 	@mkdir -p ${BIN}
