@@ -39,6 +39,7 @@ class CPU(object):
             0x8D: self._sta,
             0xA5: self._lda,
             0xA9: self._lda,
+            0xAD: self._lda,
         }
 
     def setup(self, rom):
@@ -86,23 +87,31 @@ class CPU(object):
         if instruction == 0x00:
             # TODO: needs better way to signal interruption
             raise Exception("brk")
+
         elif instruction == 0x0A:  # asl accumulator
             self.opcodes[instruction]()
-        elif instruction == 0x85:
+
+        elif instruction == 0x4C:  # jmp
+            self.pc = self._read_double()
+
+        elif instruction == 0x85:  # sta zeropage
             address = self._read_word()
             self.opcodes[instruction](address)
-        elif instruction == 0x8D:
+        elif instruction == 0x8D:  # sta absolute
             address = self._read_double()
             self.opcodes[instruction](address)
-        elif instruction == 0xA5:
+
+        elif instruction == 0xA5:  # lda zeropage
             address = self._read_word()
             value = self.memory[address]
             self.opcodes[instruction](value)
-        elif instruction == 0xA9:
-            address = self._read_word()
-            self.opcodes[instruction](address)
-        elif instruction == 0x4C:
-            self.pc = self._read_double()
+        elif instruction == 0xA9:  # lda immediate
+            value = self._read_word()
+            self.opcodes[instruction](value)
+        elif instruction == 0xAD:  # lda absolute
+            address = self._read_double()
+            value = self.memory[address]
+            self.opcodes[instruction](value)
 
         print_status(self, address)
 

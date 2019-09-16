@@ -32,6 +32,7 @@ RESET:
   LDA #$00
   LDA #$8e
   LDA $00
+  LDA $0100
   BRK ; Abort execution
 
 NMI:
