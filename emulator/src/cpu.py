@@ -37,8 +37,11 @@ class CPU(object):
             0x00: self._brk,
             0x0A: self._asl,
             0x18: self._clc,
+            0x29: self._and_imm,
             0x38: self._sec,
-            0x4c: self._jmp_abs,
+            0x4C: self._jmp_abs,
+            0x65: self._adc_zp,
+            0x69: self._adc_imm,
             0x85: self._sta_zp,
             0x8D: self._sta_abs,
             0xA2: self._ldx_imm,
@@ -68,30 +71,11 @@ class CPU(object):
         # setting pc to the reset handler
         self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
 
-    def step1(self):
-        address = None
-        instruction = self.memory[self.pc]
-        print("instruction", hex(instruction))
-        if instruction == 0x4C:  # jump
-            self.pc = (self.memory[self.pc + 2] << 8) + self.memory[self.pc + 1]
-            print("jump absolute")
-        else:
-            if instruction == 0x69:  # adc immediate
-                self.a = self.pc + 1
-            elif instruction == 0x65:  # adc zero page
-                self.a = self.memory[self.pc + 1]
-            elif instruction == 0x29:  # and immediate
-                self.a = self.pc + 1 & self.a
-            self.pc = (self.pc + 1) % 2 ** 16
-        print_status(self)
-
     def step(self):
-        address = None
         instruction = self._read_word()
-
         log.debug("instruction: 0x%02X", instruction)
-        address = self.opcodes[instruction]()
 
+        address = self.opcodes[instruction]()
         print_status(self, address)
 
     def _read_word(self):
@@ -105,6 +89,18 @@ class CPU(object):
         self.__pc_increase()
         return value
 
+    def _adc_imm(self):
+        # FIXME:
+        self.a = self.pc + 1
+
+    def _adc_zp(self):
+        # FIXME:
+        self.a = self.memory[self.pc + 1]
+
+    def _and_imm(self):
+        # FIXME:
+        self.a = self.pc + 1 & self.a
+
     def _asl(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
@@ -115,7 +111,7 @@ class CPU(object):
 
     def _brk(self):
         # TODO: needs better way to signal interruption
-        raise Exception('brk')
+        raise Exception("brk")
 
     def _clc(self):
         self.status &= 0b11111110
