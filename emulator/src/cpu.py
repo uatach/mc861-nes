@@ -92,23 +92,12 @@ class CPU(object):
 
     def step(self):
         log.debug("-" * 60)
-        instruction = self._read_word()
+        instruction = self.__read_word()
         log.debug("instruction: 0x%02X", instruction)
 
         address = self.opcodes[instruction]()
         log.debug("-" * 60)
         print_status(self, address)
-
-    def _read_word(self):
-        value = self.memory[self.pc]
-        self.__pc_increase()
-        return value
-
-    def _read_double(self):
-        value = (self.memory[self.pc + 1] << 8) + self.memory[self.pc]
-        self.__pc_increase()
-        self.__pc_increase()
-        return value
 
     # instructions
 
@@ -136,7 +125,7 @@ class CPU(object):
         self.__check_flag_negative()
 
     def _bit_abs(self):
-        address = self._read_double()
+        address = self.__read_double()
         value = self.memory[address]
 
         if not self.a & value:
@@ -148,7 +137,7 @@ class CPU(object):
         return address
 
     def _bpl(self):
-        value = self._read_word()
+        value = self.__read_word()
 
         # handling negative number
         if value & 0b10000000:
@@ -182,54 +171,54 @@ class CPU(object):
         self.__check_flag_negative()
 
     def _jmp_abs(self):
-        self.pc = self._read_double()
+        self.pc = self.__read_double()
 
     def _jmp_ind(self):
-        address = self._read_double()
+        address = self.__read_double()
         value = (self.memory[address + 1] << 8) + self.memory[address]
         self.pc = value
 
     def _jsr(self):
-        address = self._read_double()
+        address = self.__read_double()
         value = self.pc - 1
         self.__stack_push((value & 0xFF00) >> 8)
         self.__stack_push(value & 0xFF)
         self.pc = address
 
     def _lda_imm(self):
-        self.a = self._read_word()
+        self.a = self.__read_word()
         log_value(self.a)
         self.__check_flag_zero()
         self.__check_flag_negative()
 
     def _lda_abs(self):
-        address = self._read_double()
+        address = self.__read_double()
         self.a = self.memory[address]
         self.__check_flag_zero()
         self.__check_flag_negative()
         return address
 
     def _lda_zp(self):
-        address = self._read_word()
+        address = self.__read_word()
         self.a = self.memory[address]
         self.__check_flag_zero()
         self.__check_flag_negative()
         return address
 
     def _ldx_abs(self):
-        address = self._read_double()
+        address = self.__read_double()
         self.x = self.memory[address]
         self.__check_flag_zero()
         self.__check_flag_negative()
         return address
 
     def _ldx_imm(self):
-        self.x = self._read_word()
+        self.x = self.__read_word()
         self.__check_flag_zero()
         self.__check_flag_negative()
 
     def _ldx_zp(self):
-        address = self._read_word()
+        address = self.__read_word()
         self.x = self.memory[address]
         self.__check_flag_zero()
         self.__check_flag_negative()
@@ -249,17 +238,17 @@ class CPU(object):
         self.status |= 0b00000100
 
     def _sta_abs(self):
-        address = self._read_double()
+        address = self.__read_double()
         self.memory[address] = self.a
         return address
 
     def _sta_zp(self):
-        address = self._read_word()
+        address = self.__read_word()
         self.memory[address] = self.a
         return address
 
     def _stx_abs(self):
-        address = self._read_double()
+        address = self.__read_double()
         self.memory[address] = self.x
         return address
 
@@ -268,6 +257,19 @@ class CPU(object):
         self.sp = 0x0100 | self.x
 
     # private stuff
+
+    def __read_word(self, address=None):
+        address = address or self.pc
+        value = self.memory[address]
+        self.__pc_increase()
+        return value
+
+    def __read_double(self, address=None):
+        address = address or self.pc
+        value = (self.memory[address + 1] << 8) + self.memory[address]
+        self.__pc_increase()
+        self.__pc_increase()
+        return value
 
     def __pc_increase(self):
         self.pc = (self.pc + 1) % 2 ** 16
