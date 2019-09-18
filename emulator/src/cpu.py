@@ -59,6 +59,7 @@ class CPU(object):
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
             0x9A: self._txs,
+            0xA0: self._ldy_imm,
             0xA2: self._ldx_imm,
             0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
@@ -232,6 +233,11 @@ class CPU(object):
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
         return address
+
+    def _ldy_imm(self):
+        self.y = self.__read_word()
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
 
     def _nop(self):
         pass
