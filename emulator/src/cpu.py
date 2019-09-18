@@ -283,6 +283,8 @@ class CPU(object):
     def __check_flag_negative(self):
         if self.a & 0b10000000:
             self.status |= 0b10000000
+        else:
+            self.status &= 0b01111111
 
     def __stack_push(self, value):
         self.memory[self.sp] = value
