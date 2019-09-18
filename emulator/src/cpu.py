@@ -122,8 +122,8 @@ class CPU(object):
         self.status |= (self.a & 0b10000000) >> 7
         # shift left
         self.a = (self.a << 1) & 0b11111111
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def __bit(self, address):
         value = self.memory[address]
@@ -176,8 +176,8 @@ class CPU(object):
 
     def _inx(self):
         self.x = (self.x + 1) % 2 ** 8
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
 
     def _jmp_abs(self):
         self.pc = self.__read_double()
@@ -197,40 +197,40 @@ class CPU(object):
     def _lda_imm(self):
         self.a = self.__read_word()
         log_value(self.a)
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def _lda_abs(self):
         address = self.__read_double()
         self.a = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _lda_zp(self):
         address = self.__read_word()
         self.a = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _ldx_abs(self):
         address = self.__read_double()
         self.x = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
         return address
 
     def _ldx_imm(self):
         self.x = self.__read_word()
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
 
     def _ldx_zp(self):
         address = self.__read_word()
         self.x = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
         return address
 
     def _nop(self):
@@ -283,14 +283,14 @@ class CPU(object):
     def __pc_increase(self):
         self.pc = (self.pc + 1) % 2 ** 16
 
-    def __check_flag_zero(self):
-        if self.a == 0:
+    def __check_flag_zero(self, value):
+        if value == 0:
             self.status |= 0b00000010
         else:
             self.status &= 0b11111101
 
-    def __check_flag_negative(self):
-        if self.a & 0b10000000:
+    def __check_flag_negative(self, value):
+        if value & 0b10000000:
             self.status |= 0b10000000
         else:
             self.status &= 0b01111111
