@@ -22,13 +22,25 @@ reinstalar o pacote!
 cd mc861-nes
 git pull
 pip install -e emulator
-pynesemu
+pynesemu path/to/nes/rom
 ```
 
 #### Testes
 
 ```bash
+cd mc861-nes
+
+# script de testes proposto para avaliação
 make test
+
+# executa um test individual
+emulator/tools/test.sh test_name # e.g. 000
+
+# executa todos os testes em emulator/tst
+emulator/tools/test-all.sh
+
+# gera um relatório com cobertura de código
+tox -c emulator
 ```
 
 ### Links relacionados:
