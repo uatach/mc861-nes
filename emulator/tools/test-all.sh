@@ -2,6 +2,7 @@
 
 for filepath in emulator/tst/*
 do
+  echo "-- $filepath"
   filename=$(basename -- "$filepath")
   name="${filename%.*}"
 

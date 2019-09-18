@@ -49,6 +49,7 @@ class CPU(object):
             0x2C: self._bit_abs,
             0x38: self._sec,
             0x4C: self._jmp_abs,
+            0x58: self._cli,
             0x6C: self._jmp_ind,
             0x65: self._adc_zp,
             0x69: self._adc_imm,
@@ -63,16 +64,16 @@ class CPU(object):
             0xA9: self._lda_imm,
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
+            0xB8: self._clv,
             0xD8: self._cld,
             0xE8: self._inx,
             0xEA: self._nop,
+            0xF8: self._sed,
         }
         log.debug("Handling %d opcodes", len(self.opcodes))
 
     def setup(self, rom):
-        # init empty memory
-        # TODO: use received memory
-        self.memory = 2 ** 16 * [0]
+        assert len(self.memory) > len(rom)
 
         # copy rom data to memory
         size = len(rom)
@@ -169,6 +170,12 @@ class CPU(object):
         # TODO: write tests
         self.status &= 0b11110111
 
+    def _cli(self):
+        self.status &= 0b11111011
+
+    def _clv(self):
+        self.status &= 0b10111111
+
     def _inx(self):
         self.x = (self.x + 1) % 2 ** 8
         self.__check_flag_zero()
@@ -233,6 +240,9 @@ class CPU(object):
 
     def _sec(self):
         self.status |= 0b00000001
+
+    def _sed(self):
+        self.status |= 0b00001000
 
     def _sei(self):
         # TODO: write tests

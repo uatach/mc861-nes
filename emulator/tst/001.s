@@ -44,6 +44,7 @@ RESET:
   CLI
   SEI
 
+  CLD
   ; TODO: test set overflow
   CLV
   BRK ; Abort execution
