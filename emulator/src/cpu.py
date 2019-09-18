@@ -15,6 +15,10 @@ def print_status(cpu, address=None):
     print(msg)
 
 
+def log_value(value):
+    log.debug("value: 0b{:08b} - 0x{:02x} - {:03d}".format(value, value, value))
+
+
 @attr.s
 class Register(object):
     value = 0
@@ -61,8 +65,9 @@ class CPU(object):
             0xAE: self._ldx_abs,
             0xD8: self._cld,
             0xE8: self._inx,
+            0xEA: self._nop,
         }
-        log.debug('Handling %d opcodes', len(self.opcodes))
+        log.debug("Handling %d opcodes", len(self.opcodes))
 
     def setup(self, rom):
         # init empty memory
@@ -85,10 +90,12 @@ class CPU(object):
         self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
 
     def step(self):
+        log.debug("-" * 60)
         instruction = self._read_word()
         log.debug("instruction: 0x%02X", instruction)
 
         address = self.opcodes[instruction]()
+        log.debug("-" * 60)
         print_status(self, address)
 
     def _read_word(self):
@@ -144,7 +151,7 @@ class CPU(object):
 
         # handling negative number
         if value & 0b10000000:
-            value = -1 * ((value ^ 0xff) + 1)
+            value = -1 * ((value ^ 0xFF) + 1)
 
         if not (self.status & 0b10000000):
             self.pc += value
@@ -184,6 +191,7 @@ class CPU(object):
 
     def _lda_imm(self):
         self.a = self._read_word()
+        log_value(self.a)
         self.__check_flag_zero()
         self.__check_flag_negative()
 
@@ -219,6 +227,9 @@ class CPU(object):
         self.__check_flag_zero()
         self.__check_flag_negative()
         return address
+
+    def _nop(self):
+        pass
 
     def _sec(self):
         self.status |= 0b00000001
