@@ -28,26 +28,18 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #$16
+  LDA #%01000000
   STA $00
-  STA $FF
+  BIT $00
+  CLV
+  CLV
 
-  LDA #$42
-  STA $0000
-  STA $0001
-  STA $00FF
-  STA $0136
-  STA $0748
-  STA $0A62
-  STA $10A5
-  STA $39F0
-  STA $6001
-  STA $9119
-  STA $AAAA
-  STA $C123
-  STA $E987
-  STA $FFFE
-  STA $FFFF
+  STA $0200
+  BIT $0200
+  BIT $0200
+  CLV
+
+  ; TODO: add bvc and bvs tests
   BRK ; Abort execution
 
 NMI:

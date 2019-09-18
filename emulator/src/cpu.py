@@ -45,6 +45,7 @@ class CPU(object):
             0x10: self._bpl,
             0x18: self._clc,
             0x20: self._jsr,
+            0x24: self._bit_zp,
             0x29: self._and_imm,
             0x2C: self._bit_abs,
             0x38: self._sec,
@@ -124,8 +125,8 @@ class CPU(object):
         self.__check_flag_zero()
         self.__check_flag_negative()
 
-    def _bit_abs(self):
-        address = self.__read_double()
+
+    def __bit(self, address):
         value = self.memory[address]
 
         if not self.a & value:
@@ -134,6 +135,15 @@ class CPU(object):
             self.status &= 0b11111101
 
         self.status |= value & 0b11000000
+
+    def _bit_abs(self):
+        address = self.__read_double()
+        self.__bit(address)
+        return address
+
+    def _bit_zp(self):
+        address = self.__read_word()
+        self.__bit(address)
         return address
 
     def _bpl(self):

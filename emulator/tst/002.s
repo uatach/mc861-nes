@@ -37,7 +37,7 @@ RESET:
   LDA #-1
   LDA #-16
   LDA #-128
-  LDA #127 ; TODO clear negative flag
+  LDA #127
   LDA #64
   LDA #32
   LDA #16
