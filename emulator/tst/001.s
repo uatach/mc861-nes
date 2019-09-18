@@ -40,13 +40,17 @@ RESET:
 
   CLD
   SED
+  CLD
+  SED
+  SED
+  CLD
 
   CLI
   SEI
-
-  CLD
-  ; TODO: test set overflow
-  CLV
+  CLI
+  SEI
+  SEI
+  CLI
   BRK ; Abort execution
 
 NMI:
