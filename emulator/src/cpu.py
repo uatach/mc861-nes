@@ -125,7 +125,6 @@ class CPU(object):
         self.__check_flag_zero()
         self.__check_flag_negative()
 
-
     def __bit(self, address):
         value = self.memory[address]
 

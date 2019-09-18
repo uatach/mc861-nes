@@ -6,5 +6,9 @@ emulator/log
 
 __pycache__
 
+.coverage
+.pytest_cache
+.tox
+
 *egg-info
 *.exe
