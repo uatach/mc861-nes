@@ -138,7 +138,7 @@ class CPU(object):
         else:
             self.status &= 0b11111101
 
-        self.status |= value & 0b11000000
+        self.status = (self.status & 0b00111111) | (value & 0b11000000)
 
     def _bit_abs(self):
         address = self.__read_double()
