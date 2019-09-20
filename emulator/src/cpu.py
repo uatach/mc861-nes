@@ -105,12 +105,11 @@ class CPU(object):
 
     def _adc_imm(self):
         # FIXME: need to set flags
-        # TODO: write tests
         self.a = self.pc + 1
 
     def _adc_zp(self):
         # FIXME: need to set flags
-        # TODO: write tests
+        # TODO: review test
         self.a = self.memory[self.pc + 1]
 
     def _and_imm(self):
