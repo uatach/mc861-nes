@@ -28,30 +28,30 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #$00
-  LDA #$42
-  LDA #$7F
-  LDA #$80
-  LDA #$FF
+  LDY #$00
+  LDY #$42
+  LDY #$7F
+  LDY #$80
+  LDY #$FF
 
-  LDA #-1
-  LDA #-16
-  LDA #-128
-  LDA #127 ; TODO clear negative flag
-  LDA #64
-  LDA #32
-  LDA #16
-  LDA #8
-  LDA #4
-  LDA #2
-  LDA #0
+  LDY #-1
+  LDY #-16
+  LDY #-128
+  LDY #127
+  LDY #64
+  LDY #32
+  LDY #16
+  LDY #8
+  LDY #4
+  LDY #2
+  LDY #0
 
-  LDA #%11111111
-  LDA #%10101010
-  LDA #%10000000
-  LDA #%01111111
-  LDA #%01010101
-  LDA #%00000000
+  LDY #%11111111
+  LDY #%10101010
+  LDY #%10000000
+  LDY #%01111111
+  LDY #%01010101
+  LDY #%00000000
   BRK ; Abort execution
 
 NMI:

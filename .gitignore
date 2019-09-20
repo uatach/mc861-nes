@@ -5,6 +5,11 @@ emulator/bin
 emulator/log
 
 __pycache__
+htmlcov
+
+.coverage
+.pytest_cache
+.tox
 
 *egg-info
 *.exe

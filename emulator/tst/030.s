@@ -28,25 +28,37 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  CLC
-  SEC
-  CLC
-  CLC
-  SEC
-  SEC
-  CLC
-  SEC
-  CLC
+  LDA #$16
+  STA $00
+  STA $FF
 
-  CLD
-  SED
+  LDA #$42
+  STA $0000
+  STA $0001
+  STA $00FF
+  STA $0136
+  STA $0748
+  STA $0A62
+  STA $10A5
+  STA $39F0
+  STA $6001
+  STA $9119
+  STA $AAAA
+  STA $C123
+  STA $E987
+  STA $FFFE
+  STA $FFFF
 
-  CLI
-  SEI
-
-  CLD
-  ; TODO: test set overflow
-  CLV
+  LDA $10
+  LDA $00
+  LDA $10
+  LDA $FF
+  LDA $10
+  LDA $0136
+  LDA $10
+  LDA $39F0
+  LDA $10
+  LDA $E987
   BRK ; Abort execution
 
 NMI:

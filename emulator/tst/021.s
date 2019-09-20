@@ -28,28 +28,30 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #$16
+  LDX #$00
+  LDX #$42
+  LDX #$7F
+  LDX #$80
+  LDX #$FF
 
-  STA $00
-  STA $FF
+  LDX #-1
+  LDX #-16
+  LDX #-128
+  LDX #127
+  LDX #64
+  LDX #32
+  LDX #16
+  LDX #8
+  LDX #4
+  LDX #2
+  LDX #0
 
-  LDA #$42
-
-  STA $0000
-  STA $0001
-  STA $00FF
-  STA $0136
-  STA $0748
-  STA $0A62
-  STA $10A5
-  STA $39F0
-  STA $6001
-  STA $9119
-  STA $AAAA
-  STA $C123
-  STA $E987
-  STA $FFFE
-  STA $FFFF
+  LDX #%11111111
+  LDX #%10101010
+  LDX #%10000000
+  LDX #%01111111
+  LDX #%01010101
+  LDX #%00000000
   BRK ; Abort execution
 
 NMI:

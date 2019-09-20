@@ -45,6 +45,7 @@ class CPU(object):
             0x10: self._bpl,
             0x18: self._clc,
             0x20: self._jsr,
+            0x24: self._bit_zp,
             0x29: self._and_imm,
             0x2C: self._bit_abs,
             0x38: self._sec,
@@ -58,6 +59,7 @@ class CPU(object):
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
             0x9A: self._txs,
+            0xA0: self._ldy_imm,
             0xA2: self._ldx_imm,
             0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
@@ -121,11 +123,10 @@ class CPU(object):
         self.status |= (self.a & 0b10000000) >> 7
         # shift left
         self.a = (self.a << 1) & 0b11111111
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
-    def _bit_abs(self):
-        address = self.__read_double()
+    def __bit(self, address):
         value = self.memory[address]
 
         if not self.a & value:
@@ -134,6 +135,15 @@ class CPU(object):
             self.status &= 0b11111101
 
         self.status |= value & 0b11000000
+
+    def _bit_abs(self):
+        address = self.__read_double()
+        self.__bit(address)
+        return address
+
+    def _bit_zp(self):
+        address = self.__read_word()
+        self.__bit(address)
         return address
 
     def _bpl(self):
@@ -167,8 +177,8 @@ class CPU(object):
 
     def _inx(self):
         self.x = (self.x + 1) % 2 ** 8
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
 
     def _jmp_abs(self):
         self.pc = self.__read_double()
@@ -188,41 +198,46 @@ class CPU(object):
     def _lda_imm(self):
         self.a = self.__read_word()
         log_value(self.a)
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def _lda_abs(self):
         address = self.__read_double()
         self.a = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _lda_zp(self):
         address = self.__read_word()
         self.a = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _ldx_abs(self):
         address = self.__read_double()
         self.x = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
         return address
 
     def _ldx_imm(self):
         self.x = self.__read_word()
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
 
     def _ldx_zp(self):
         address = self.__read_word()
         self.x = self.memory[address]
-        self.__check_flag_zero()
-        self.__check_flag_negative()
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
         return address
+
+    def _ldy_imm(self):
+        self.y = self.__read_word()
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
 
     def _nop(self):
         pass
@@ -273,14 +288,14 @@ class CPU(object):
     def __pc_increase(self):
         self.pc = (self.pc + 1) % 2 ** 16
 
-    def __check_flag_zero(self):
-        if self.a == 0:
+    def __check_flag_zero(self, value):
+        if value == 0:
             self.status |= 0b00000010
         else:
             self.status &= 0b11111101
 
-    def __check_flag_negative(self):
-        if self.a & 0b10000000:
+    def __check_flag_negative(self, value):
+        if value & 0b10000000:
             self.status |= 0b10000000
         else:
             self.status &= 0b01111111
