@@ -83,9 +83,13 @@ class CPU(object):
             0xB9: self._lda_absy,
             0xBD: self._lda_absx,
             0xD8: self._cld,
+            0xE6: self._inc_zp,
             0xE8: self._inx,
             0xEA: self._nop,
+            0xEE: self._inc_abs,
+            0xF6: self._inc_zpx,
             0xF8: self._sed,
+            0xFE: self._inc_absx,
         }
         log.info("Handling %d opcodes", len(self.opcodes))
 
@@ -188,6 +192,38 @@ class CPU(object):
 
     def _clv(self):
         self.status &= 0b10111111
+
+    def _inc_abs(self):
+        address = self.__read_double()
+        value = (self.memory[address] + 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _inc_absx(self):
+        address = self.__read_double() + self.x
+        value = (self.memory[address] + 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _inc_zp(self):
+        address = self.__read_word()
+        value = (self.memory[address] + 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _inc_zpx(self):
+        address = self.__read_word() + self.x
+        value = (self.memory[address] + 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
 
     def _inx(self):
         self.x = (self.x + 1) % 2 ** 8
