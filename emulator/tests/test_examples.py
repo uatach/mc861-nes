@@ -6,14 +6,19 @@ from click.testing import CliRunner
 
 
 def collect_examples():
-    inputs = []
-    for dirpath, dirnames, filenames in os.walk("bin/"):
-        for filename in sorted(filenames):
-            inputs.append(os.path.join(dirpath, filename))
+    names = []
     outputs = []
     for dirpath, dirnames, filenames in os.walk("res/"):
         for filename in sorted(filenames):
+            names.append(filename[:-2])
             outputs.append(os.path.join(dirpath, filename))
+
+    inputs = []
+    for dirpath, dirnames, filenames in os.walk("bin/"):
+        for filename in sorted(filenames):
+            if filename in names:
+                inputs.append(os.path.join(dirpath, filename))
+
     return list(zip(inputs, outputs))
 
 
