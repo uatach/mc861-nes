@@ -253,7 +253,6 @@ class CPU(object):
         return address
 
     def _txs(self):
-        # TODO: write tests
         self.sp = 0x0100 | self.x
 
     # private stuff
