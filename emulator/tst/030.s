@@ -69,6 +69,21 @@ RESET:
   STA $0300,Y
   STA ($01,X)
   STA ($11),Y
+
+  LDA #$42
+  LDA $02
+  LDA #$42
+  LDA $10,X
+  LDA #$42
+  LDA $11,X
+  LDA #$42
+  LDA $0200,X
+  LDA #$42
+  LDA $0300,Y
+  LDA #$42
+  LDA ($01,X)
+  LDA #$42
+  LDA ($11),Y
   BRK ; Abort execution
 
 NMI:

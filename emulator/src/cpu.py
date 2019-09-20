@@ -68,6 +68,7 @@ class CPU(object):
             0x9A: self._txs,
             0x9D: self._sta_absx,
             0xA0: self._ldy_imm,
+            0xA1: self._lda_indx,
             0xA2: self._ldx_imm,
             0xA4: self._ldy_zp,
             0xA5: self._lda_zp,
@@ -76,13 +77,17 @@ class CPU(object):
             0xAC: self._ldy_abs,
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
+            0xB1: self._lda_indy,
+            0xB5: self._lda_zpx,
             0xB8: self._clv,
+            0xB9: self._lda_absy,
+            0xBD: self._lda_absx,
             0xD8: self._cld,
             0xE8: self._inx,
             0xEA: self._nop,
             0xF8: self._sed,
         }
-        log.debug("Handling %d opcodes", len(self.opcodes))
+        log.info("Handling %d opcodes", len(self.opcodes))
 
     def setup(self, rom):
         assert len(self.memory) > len(rom)
@@ -217,8 +222,41 @@ class CPU(object):
         self.__check_flag_negative(self.a)
         return address
 
+    def _lda_absx(self):
+        address = self.__read_double() + self.x
+        self.a = self.memory[address]
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+        return address
+
+    def _lda_absy(self):
+        address = self.__read_double() + self.y
+        self.a = self.memory[address]
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+        return address
+
+    def _lda_indx(self):
+        value = self.__read_word()
+        address = self.memory[value] + self.x
+        self.a = self.memory[address]
+        return address
+
+    def _lda_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        self.a = self.memory[address]
+        return address
+
     def _lda_zp(self):
         address = self.__read_word()
+        self.a = self.memory[address]
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+        return address
+
+    def _lda_zpx(self):
+        address = self.__read_word() + self.x
         self.a = self.memory[address]
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
