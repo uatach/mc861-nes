@@ -49,8 +49,10 @@ class CPU(object):
             0x29: self._and_imm,
             0x2C: self._bit_abs,
             0x38: self._sec,
+            0x48: self._pha,
             0x4C: self._jmp_abs,
             0x58: self._cli,
+            0x68: self._pla,
             0x6C: self._jmp_ind,
             0x65: self._adc_zp,
             0x69: self._adc_imm,
@@ -343,6 +345,14 @@ class CPU(object):
     def _nop(self):
         pass
 
+    def _pha(self):
+        self.__stack_push(self.a)
+
+    def _pla(self):
+        self.a = self.__stack_pull()
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
     def _sec(self):
         self.status |= 0b00000001
 
@@ -448,6 +458,6 @@ class CPU(object):
         self.sp -= 1
 
     def __stack_pull(self):
-        value = self.memory[self.sp]
         self.sp += 1
+        value = self.memory[self.sp]
         return value
