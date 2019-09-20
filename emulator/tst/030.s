@@ -84,6 +84,22 @@ RESET:
   LDA ($01,X)
   LDA #$42
   LDA ($11),Y
+
+  LDA #$42
+  LDA $20
+  LDA #$42
+  LDA $20,X
+  LDA #$42
+  LDA $20,Y
+  LDA #$42
+  LDA $0400,X
+  LDA #$42
+  LDA $0400,Y
+  LDA #$20
+  STA $20
+  LDA ($20,X)
+  LDA #$42
+  LDA ($80),Y
   BRK ; Abort execution
 
 NMI:

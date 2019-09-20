@@ -240,12 +240,16 @@ class CPU(object):
         value = self.__read_word()
         address = self.memory[value] + self.x
         self.a = self.memory[address]
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _lda_indy(self):
         value = self.__read_word()
         address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
         self.a = self.memory[address]
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
         return address
 
     def _lda_zp(self):
