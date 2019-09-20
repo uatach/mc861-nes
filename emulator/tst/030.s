@@ -59,6 +59,16 @@ RESET:
   LDA $39F0
   LDA $10
   LDA $E987
+
+  LDX #$01
+  LDY #$02
+  LDA #$10
+  STA $10,X
+  STA $11,X
+  STA $0200,X
+  STA $0300,Y
+  STA ($01,X)
+  STA ($11),Y
   BRK ; Abort execution
 
 NMI:

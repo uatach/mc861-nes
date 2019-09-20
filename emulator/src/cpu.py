@@ -55,13 +55,18 @@ class CPU(object):
             0x65: self._adc_zp,
             0x69: self._adc_imm,
             0x78: self._sei,
+            0x81: self._sta_indx,
             0x84: self._sty_zp,
             0x85: self._sta_zp,
             0x86: self._stx_zp,
             0x8C: self._sty_abs,
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
+            0x91: self._sta_indy,
+            0x95: self._sta_zpx,
+            0x99: self._sta_absy,
             0x9A: self._txs,
+            0x9D: self._sta_absx,
             0xA0: self._ldy_imm,
             0xA2: self._ldx_imm,
             0xA4: self._ldy_zp,
@@ -275,8 +280,35 @@ class CPU(object):
         self.memory[address] = self.a
         return address
 
+    def _sta_absx(self):
+        address = self.__read_double() + self.x
+        self.memory[address] = self.a
+        return address
+
+    def _sta_absy(self):
+        address = self.__read_double() + self.y
+        self.memory[address] = self.a
+        return address
+
+    def _sta_indx(self):
+        value = self.__read_word()
+        address = self.memory[value] + self.x
+        self.memory[address] = self.a
+        return address
+
+    def _sta_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        self.memory[address] = self.a
+        return address
+
     def _sta_zp(self):
         address = self.__read_word()
+        self.memory[address] = self.a
+        return address
+
+    def _sta_zpx(self):
+        address = self.__read_word() + self.x
         self.memory[address] = self.a
         return address
 
