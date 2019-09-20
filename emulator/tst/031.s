@@ -59,6 +59,23 @@ RESET:
   LDX $39F0
   LDX $10
   LDX $E987
+
+  LDA #$10
+  LDX #$10
+  LDY #$02
+  STX $10,Y
+  STX $11,Y
+  STA $0200,Y
+  STA $0300,Y
+
+  LDX #$42
+  LDX $10,Y
+  LDX #$42
+  LDX $11,Y
+  LDX #$42
+  LDX $0200,Y
+  LDX #$42
+  LDX $0300,Y
   BRK ; Abort execution
 
 NMI:

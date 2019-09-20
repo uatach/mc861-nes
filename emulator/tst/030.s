@@ -85,6 +85,7 @@ RESET:
   LDA #$42
   LDA ($11),Y
 
+  ; loading zeros
   LDA #$42
   LDA $20
   LDA #$42
