@@ -76,6 +76,7 @@ class CPU(object):
             # 0x39: self._and_absy,
             # 0x3D: self._and_absx,
             # 0x3E: self._rol_absx,
+            0x40: self._rti,
             0x46: self._lsr_zp,
             0x48: self._pha,
             0x4A: self._lsr_acc,
@@ -509,6 +510,12 @@ class CPU(object):
 
     def _plp(self):
         self.status = self.__stack_pull()
+
+    def _rti(self):
+        self.status = self.__stack_pull()
+        value = self.__stack_pull()
+        value += self.__stack_pull() << 8
+        self.pc = value
 
     def _rts(self):
         value = self.__stack_pull()
