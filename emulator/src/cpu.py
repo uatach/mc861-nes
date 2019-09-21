@@ -95,7 +95,6 @@ class CPU(object):
             0xF6: self._inc_zpx,
             0xF8: self._sed,
             0xFE: self._inc_absx,
-            
             0xC8: self._iny,
             0x4A: self._lsr_accumulator,
             0x46: self._lsr_zeropage,
@@ -148,6 +147,7 @@ class CPU(object):
         # TODO: write tests
         self.a = self.pc + 1 & self.a
 
+
     def _asl(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
@@ -175,7 +175,7 @@ class CPU(object):
         address = self.__read_word()
         self.__bit(address)
         return address
-
+4C
     def _bpl(self):
         value = self.__read_word()
 
@@ -490,20 +490,21 @@ class CPU(object):
         self.sp += 1
         value = self.memory[self.sp]
         return value
+
+
 #fazer código para testes - Waki
     def _iny(self):
         self.y = (self.y + 1) % 2 ** 8
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
-
-    def self._lsr_accumulator(self):
+    
+   def _lsr_accumulator(self):
         self.a = (self.a*2)% 2 ** 8
         #tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
         
-    def self._lsr_zeropage(self):
-        
+    def _lsr_zeropage(self):
         
         address = self.__read_word() 
         aux = (self.memory[address] *2)%2 **8
@@ -515,7 +516,7 @@ class CPU(object):
         
         return address
     
-    def self._lsr_zeropage_x(self):
+    def _lsr_zeropage_x(self):
         address = self.__read_word() 
         aux = ((self.memory[address]+self.x) *2)%2 **8
         self.memory[address]  =  aux
@@ -526,15 +527,13 @@ class CPU(object):
         
         return address
 
-
-
-    def self._lsr_absolute(self) :
+    def _lsr_absolute(self) :
         self.a = (2*self.__read_word())% 2 ** 8
         #tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
-    def self._lsr_absolute_x(self):
+    def _lsr_absolute_x(self):
         self.a = (2*(self.__read_double+ self.x)) %2 **8    
         #tem que adicionar o overflow
         self.__check_flag_negative(self.a)
