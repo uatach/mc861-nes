@@ -41,16 +41,41 @@ class CPU(object):
 
         self.opcodes = {
             0x00: self._brk,
+            # 0x01: self._ora_indx,
+            # 0x05: self._ora_zp,
+            # 0x06: self._asl_zp,
             0x08: self._php,
-            0x0A: self._asl,
+            # 0x09: self._ora_imm,
+            0x0A: self._asl_acc,
+            # 0x0D: self._ora_abs,
+            # 0x0E: self._asl_abs,
             0x10: self._bpl,
+            # 0x11: self._ora_indy,
+            # 0x15: self._ora_zpx,
+            # 0x16: self._asl_zpx,
             0x18: self._clc,
+            # 0x19: self._ora_absy,
+            # 0x1D: self._ora_absx,
+            # 0x1E: self._asl_absx,
             0x20: self._jsr,
+            # 0x21: self._and_indx,
             0x24: self._bit_zp,
+            # 0x25: self._and_zp,
+            # 0x26: self._rol_zp,
             0x28: self._plp,
             0x29: self._and_imm,
+            # 0x2A: self._rol_acc,
             0x2C: self._bit_abs,
+            # 0x2D: self._and_abs,
+            # 0x2E: self._rol_abs,
+            # 0x30: self._bmi,
+            # 0x31: self._and_indy,
+            # 0x35: self._and_zpx,
+            # 0x36: self._rol_zpx,
             0x38: self._sec,
+            # 0x39: self._and_absy,
+            # 0x3D: self._and_absx,
+            # 0x3E: self._rol_absx,
             0x46: self._lsr_zp,
             0x48: self._pha,
             0x4A: self._lsr_acc,
@@ -192,7 +217,7 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
-    def _asl(self):
+    def _asl_acc(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
         # shift left
