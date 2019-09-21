@@ -59,6 +59,7 @@ class CPU(object):
             0x6D: self._adc_abs,
             0x75: self._adc_zpx,
             0x78: self._sei,
+            # 0x7D: self._adc_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
             0x85: self._sta_zp,
@@ -158,7 +159,6 @@ class CPU(object):
     def _adc_zpx(self):
         before = self.a
         address = self.__read_word() + self.x
-        print("adcx", address, self.memory[address])
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
@@ -168,12 +168,20 @@ class CPU(object):
     def _adc_abs(self):
         before = self.a
         address = self.__read_double()
-        print("adcx", address, self.memory[address])
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
+
+    # def _adc_absx(self):
+    #     before = self.a
+    #     address = self.__read_double()
+    #     self.a = self.memory[address] + self.a
+    #     self.__check_flag_carry(self.a)
+    #     self.__check_flag_overflow(self.a, before)
+    #     self.__check_flag_zero(self.a)
+    #     self.__check_flag_negative(self.a)
 
     def _and_imm(self):
         # TODO: write tests
@@ -360,7 +368,14 @@ class CPU(object):
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
         return address
-
+    # def _adc_absx(self):
+    #     before = self.a
+    #     address = self.__read_double()
+    #     self.a = self.memory[address] + self.a
+    #     self.__check_flag_carry(self.a)
+    #     self.__check_flag_overflow(self.a, before)
+    #     self.__check_flag_zero(self.a)
+    #     self.__check_flag_negative(self.a)
     def _ldx_imm(self):
         self.x = self.__read_word()
         self.__check_flag_zero(self.x)
@@ -546,7 +561,6 @@ class CPU(object):
         mask = 0b10000000
         overflow = value & mask
         overflow_before = value_before & mask
-        print("overflow", overflow, overflow_before)
         if(overflow_before != overflow):
             self.status |= 0b01000000
         else:
