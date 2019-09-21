@@ -150,7 +150,6 @@ class CPU(object):
         # TODO: write tests
         self.a = self.pc + 1 & self.a
 
-
     def _asl(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
@@ -178,7 +177,7 @@ class CPU(object):
         address = self.__read_word()
         self.__bit(address)
         return address
-4C
+
     def _bpl(self):
         value = self.__read_word()
 
@@ -513,52 +512,48 @@ class CPU(object):
         value = self.memory[self.sp]
         return value
 
-
-#fazer código para testes - Waki
+    # TODO: fazer código para testes - Waki
     def _iny(self):
         self.y = (self.y + 1) % 2 ** 8
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
-    
-   def _lsr_accumulator(self):
-        self.a = (self.a*2)% 2 ** 8
-        #tem que adicionar o overflow
+
+    def _lsr_accumulator(self):
+        self.a = (self.a * 2) % 2 ** 8
+        # tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
-        
+
     def _lsr_zeropage(self):
-        
-        address = self.__read_word() 
-        aux = (self.memory[address] *2)%2 **8
-        self.memory[address]  =  aux
-        
-        #tem que adicionar o overflow
+        address = self.__read_word()
+        aux = (self.memory[address] * 2) % 2 ** 8
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
-        
-        return address
-    
-    def _lsr_zeropage_x(self):
-        address = self.__read_word() 
-        aux = ((self.memory[address]+self.x) *2)%2 **8
-        self.memory[address]  =  aux
-        
-        #tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-        
+
         return address
 
-    def _lsr_absolute(self) :
-        self.a = (2*self.__read_word())% 2 ** 8
-        #tem que adicionar o overflow
+    def _lsr_zeropage_x(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x) * 2) % 2 ** 8
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _lsr_absolute(self):
+        self.a = (2 * self.__read_word()) % 2 ** 8
+        # tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _lsr_absolute_x(self):
-        self.a = (2*(self.__read_double+ self.x)) %2 **8    
-        #tem que adicionar o overflow
+        self.a = (2 * (self.__read_double + self.x)) % 2 ** 8
+        # tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
-
-        
