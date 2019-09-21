@@ -30,19 +30,11 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
-  LDA #$10      ;Add the least
-  CLC          ;significant pair
-  ADC #$1     ;with the carry
-  STA $44   ;cleared ...
-
-  LDA $15   ;Add next byte
-  ADC #$2      ;pair without
-  STA $44 ;clearing carry
-
-  LDA $20   ;and the next
-  LDA #$78
-  ADC #$9      ;pair...
-  STA $44
+  LDX #$8
+  STX $a2
+  LDA #$79
+  LDX #$2
+  ADC $a0, X
   BRK ; Abort execution
 
 NMI:
