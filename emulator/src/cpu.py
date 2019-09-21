@@ -49,17 +49,22 @@ class CPU(object):
             0x29: self._and_imm,
             0x2C: self._bit_abs,
             0x38: self._sec,
+            0x46: self._lsr_zp,
             0x48: self._pha,
+            0x4A: self._lsr_acc,
             0x4C: self._jmp_abs,
+            0x4E: self._lsr_abs,
+            0x56: self._lsr_zpx,
             0x58: self._cli,
-            0x68: self._pla,
-            0x6C: self._jmp_ind,
+            0x5E: self._lsr_absx,
             0x65: self._adc_zp,
+            0x68: self._pla,
             0x69: self._adc_imm,
+            0x6C: self._jmp_ind,
             0x6D: self._adc_abs,
             0x75: self._adc_zpx,
             0x78: self._sei,
-            # 0x7D: self._adc_absx,
+            0x7D: self._adc_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
             0x85: self._sta_zp,
@@ -93,6 +98,7 @@ class CPU(object):
             0xBC: self._ldy_absx,
             0xBD: self._lda_absx,
             0xBE: self._ldx_absy,
+            0xC8: self._iny,
             0xD8: self._cld,
             0xE6: self._inc_zp,
             0xE8: self._inx,
@@ -101,12 +107,6 @@ class CPU(object):
             0xF6: self._inc_zpx,
             0xF8: self._sed,
             0xFE: self._inc_absx,
-            0xC8: self._iny,
-            0x4A: self._lsr_accumulator,
-            0x46: self._lsr_zeropage,
-            0x56: self._lsr_zeropage_x,
-            0x4E: self._lsr_absolute,
-            0x5E: self._lsr_absolute_x,
         }
         log.info("Handling %d opcodes", len(self.opcodes))
 
@@ -139,6 +139,24 @@ class CPU(object):
 
     # instructions
 
+    def _adc_abs(self):
+        before = self.a
+        address = self.__read_double()
+        self.a = self.memory[address] + self.a
+        self.__check_flag_carry(self.a)
+        self.__check_flag_overflow(self.a, before)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _adc_absx(self):
+        before = self.a
+        address = self.__read_double()
+        self.a = self.memory[address] + self.a
+        self.__check_flag_carry(self.a)
+        self.__check_flag_overflow(self.a, before)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
     def _adc_imm(self):
         before = self.a
         self.a = self.__read_word() + self.a
@@ -164,24 +182,6 @@ class CPU(object):
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
-
-    def _adc_abs(self):
-        before = self.a
-        address = self.__read_double()
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
-        self.__check_flag_zero(self.a)
-        self.__check_flag_negative(self.a)
-
-    # def _adc_absx(self):
-    #     before = self.a
-    #     address = self.__read_double()
-    #     self.a = self.memory[address] + self.a
-    #     self.__check_flag_carry(self.a)
-    #     self.__check_flag_overflow(self.a, before)
-    #     self.__check_flag_zero(self.a)
-    #     self.__check_flag_negative(self.a)
 
     def _and_imm(self):
         # TODO: write tests
@@ -283,6 +283,11 @@ class CPU(object):
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
 
+    def _iny(self):
+        self.y = (self.y + 1) % 2 ** 8
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
+
     def _jmp_abs(self):
         self.pc = self.__read_double()
 
@@ -368,14 +373,7 @@ class CPU(object):
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
         return address
-    # def _adc_absx(self):
-    #     before = self.a
-    #     address = self.__read_double()
-    #     self.a = self.memory[address] + self.a
-    #     self.__check_flag_carry(self.a)
-    #     self.__check_flag_overflow(self.a, before)
-    #     self.__check_flag_zero(self.a)
-    #     self.__check_flag_negative(self.a)
+
     def _ldx_imm(self):
         self.x = self.__read_word()
         self.__check_flag_zero(self.x)
@@ -426,6 +424,46 @@ class CPU(object):
         self.y = self.memory[address]
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
+        return address
+
+    def _lsr_abs(self):
+        self.a = (2 * self.__read_word()) % 2 ** 8
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _lsr_absx(self):
+        self.a = (2 * (self.__read_double + self.x)) % 2 ** 8
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _lsr_acc(self):
+        self.a = (self.a * 2) % 2 ** 8
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _lsr_zp(self):
+        address = self.__read_word()
+        aux = (self.memory[address] * 2) % 2 ** 8
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _lsr_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x) * 2) % 2 ** 8
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
         return address
 
     def _nop(self):
@@ -552,7 +590,7 @@ class CPU(object):
     def __check_flag_carry(self, value):
         mask = 0b10000000
         overflow = value & mask
-        if overflow==128:
+        if overflow == 128:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110
@@ -561,7 +599,7 @@ class CPU(object):
         mask = 0b10000000
         overflow = value & mask
         overflow_before = value_before & mask
-        if(overflow_before != overflow):
+        if overflow_before != overflow:
             self.status |= 0b01000000
         else:
             self.status &= 0b10111111
@@ -574,49 +612,3 @@ class CPU(object):
         self.sp += 1
         value = self.memory[self.sp]
         return value
-
-    # TODO: fazer código para testes - Waki
-    def _iny(self):
-        self.y = (self.y + 1) % 2 ** 8
-        self.__check_flag_zero(self.y)
-        self.__check_flag_negative(self.y)
-
-    def _lsr_accumulator(self):
-        self.a = (self.a * 2) % 2 ** 8
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-    def _lsr_zeropage(self):
-        address = self.__read_word()
-        aux = (self.memory[address] * 2) % 2 ** 8
-        self.memory[address] = aux
-
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-        return address
-
-    def _lsr_zeropage_x(self):
-        address = self.__read_word()
-        aux = ((self.memory[address] + self.x) * 2) % 2 ** 8
-        self.memory[address] = aux
-
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-        return address
-
-    def _lsr_absolute(self):
-        self.a = (2 * self.__read_word()) % 2 ** 8
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-    def _lsr_absolute_x(self):
-        self.a = (2 * (self.__read_double + self.x)) % 2 ** 8
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
