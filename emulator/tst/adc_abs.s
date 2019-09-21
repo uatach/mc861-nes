@@ -31,10 +31,10 @@ RESET:
   JMP test
 test:
   LDX #$8
-  STX $a0
+  STX $a000
   LDA #$79
   LDX #$2
-  ADC $a0
+  ADC $a000
   BRK ; Abort execution
 
 NMI:
