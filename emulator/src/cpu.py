@@ -98,6 +98,7 @@ class CPU(object):
             0x84: self._sty_zp,
             0x85: self._sta_zp,
             0x86: self._stx_zp,
+            0x8A: self._txa,
             0x8C: self._sty_abs,
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
@@ -105,6 +106,7 @@ class CPU(object):
             0x94: self._sty_zpx,
             0x95: self._sta_zpx,
             0x96: self._stx_zpy,
+            0x98: self._tya,
             0x99: self._sta_absy,
             0x9A: self._txs,
             0x9D: self._sta_absx,
@@ -114,7 +116,9 @@ class CPU(object):
             0xA4: self._ldy_zp,
             0xA5: self._lda_zp,
             0xA6: self._ldx_zp,
+            0xA8: self._tay,
             0xA9: self._lda_imm,
+            0xAA: self._tax,
             0xAC: self._ldy_abs,
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
@@ -124,6 +128,7 @@ class CPU(object):
             0xB6: self._ldx_zpy,
             0xB8: self._clv,
             0xB9: self._lda_absy,
+            0xBA: self._tsx,
             0xBC: self._ldy_absx,
             0xBD: self._lda_absx,
             0xBE: self._ldx_absy,
@@ -599,8 +604,33 @@ class CPU(object):
         self.memory[address] = self.y
         return address
 
+    def _tax(self):
+        self.x = self.a
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
+
+    def _tay(self):
+        self.y = self.a
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
+
+    def _tsx(self):
+        self.x = self.sp & 0xFF
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
+
+    def _txa(self):
+        self.a = self.x
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
     def _txs(self):
         self.sp = 0x0100 | self.x
+
+    def _tya(self):
+        self.a = self.y
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     # private stuff
 
