@@ -5,4 +5,4 @@ all:
 	${CC} ${CFLAGS} -o asm6 asm6.c
 
 clean:
-	rm asm6
+	rm -f asm6

@@ -8,7 +8,10 @@ NES=./emulator/bin/nesemu
 TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
 CROSS_AS=${EXT}/asm6/asm6
 
-all: ${BIN} ${LOG} ${NES}
+all: ${BIN} ${LOG} ${NES} ${CROSS_AS}
+
+${CROSS_AS}:
+	cd emulator/ext/asm6; make all
 
 ${NES}:
 	# TODO: not sure if this goes here
@@ -23,8 +26,7 @@ ${BIN}/%: ${TST}/%.s
 ${LOG}:
 	@mkdir -p ${LOG}
 
-test: ${BIN} ${LOG} ${NES} ${TESTS}
-	cd emulator/ext/asm6; make all
+test: ${CROSS_AS} ${BIN} ${LOG} ${NES} ${TESTS}
 	@{  echo "************************* Tests ******************************"; \
 		test_failed=0; \
 		test_passed=0; \
