@@ -40,7 +40,8 @@ test:
   STA $44 ;clearing carry
 
   LDA $20   ;and the next
-  ADC #$3      ;pair...
+  LDA #$78
+  ADC #$9      ;pair...
   STA $44
   BRK ; Abort execution
 
