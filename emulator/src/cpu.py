@@ -65,6 +65,7 @@ class CPU(object):
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
             0x91: self._sta_indy,
+            0x94: self._sty_zpx,
             0x95: self._sta_zpx,
             0x96: self._stx_zpy,
             0x99: self._sta_absy,
@@ -81,10 +82,12 @@ class CPU(object):
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
             0xB1: self._lda_indy,
+            0xB4: self._ldy_zpx,
             0xB5: self._lda_zpx,
             0xB6: self._ldx_zpy,
             0xB8: self._clv,
             0xB9: self._lda_absy,
+            0xBC: self._ldy_absx,
             0xBD: self._lda_absx,
             0xBE: self._ldx_absy,
             0xD8: self._cld,
@@ -354,6 +357,13 @@ class CPU(object):
         self.__check_flag_negative(self.y)
         return address
 
+    def _ldy_absx(self):
+        address = self.__read_double() + self.x
+        self.y = self.memory[address]
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
+        return address
+
     def _ldy_imm(self):
         self.y = self.__read_word()
         self.__check_flag_zero(self.y)
@@ -361,6 +371,13 @@ class CPU(object):
 
     def _ldy_zp(self):
         address = self.__read_word()
+        self.y = self.memory[address]
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
+        return address
+
+    def _ldy_zpx(self):
+        address = self.__read_word() + self.x
         self.y = self.memory[address]
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
@@ -446,6 +463,11 @@ class CPU(object):
 
     def _sty_zp(self):
         address = self.__read_word()
+        self.memory[address] = self.y
+        return address
+
+    def _sty_zpx(self):
+        address = self.__read_word() + self.x
         self.memory[address] = self.y
         return address
 
