@@ -41,11 +41,13 @@ class CPU(object):
 
         self.opcodes = {
             0x00: self._brk,
+            0x08: self._php,
             0x0A: self._asl,
             0x10: self._bpl,
             0x18: self._clc,
             0x20: self._jsr,
             0x24: self._bit_zp,
+            0x28: self._plp,
             0x29: self._and_imm,
             0x2C: self._bit_abs,
             0x38: self._sec,
@@ -237,7 +239,6 @@ class CPU(object):
         self.status &= 0b11111110
 
     def _cld(self):
-        # TODO: write tests
         self.status &= 0b11110111
 
     def _cli(self):
@@ -472,10 +473,16 @@ class CPU(object):
     def _pha(self):
         self.__stack_push(self.a)
 
+    def _php(self):
+        self.__stack_push(self.status)
+
     def _pla(self):
         self.a = self.__stack_pull()
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
+
+    def _plp(self):
+        self.status = self.__stack_pull()
 
     def _sec(self):
         self.status |= 0b00000001
@@ -588,9 +595,8 @@ class CPU(object):
             self.status &= 0b01111111
 
     def __check_flag_carry(self, value):
-        mask = 0b10000000
-        overflow = value & mask
-        if overflow == 128:
+        # FIXME: it's doing same check from negative flag
+        if value & 0b10000000:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110
