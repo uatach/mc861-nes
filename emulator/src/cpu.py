@@ -59,6 +59,7 @@ class CPU(object):
             0x56: self._lsr_zpx,
             0x58: self._cli,
             0x5E: self._lsr_absx,
+            0x60: self._rts,
             0x65: self._adc_zp,
             0x68: self._pla,
             0x69: self._adc_imm,
@@ -299,7 +300,7 @@ class CPU(object):
 
     def _jsr(self):
         address = self.__read_double()
-        value = self.pc - 1
+        value = self.pc
         self.__stack_push((value & 0xFF00) >> 8)
         self.__stack_push(value & 0xFF)
         self.pc = address
@@ -483,6 +484,11 @@ class CPU(object):
 
     def _plp(self):
         self.status = self.__stack_pull()
+
+    def _rts(self):
+        value = self.__stack_pull()
+        value += self.__stack_pull() << 8
+        self.pc = value
 
     def _sec(self):
         self.status |= 0b00000001
