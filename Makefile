@@ -14,8 +14,7 @@ ${CROSS_AS}:
 	cd emulator/ext/asm6; make all
 
 ${NES}:
-	# TODO: not sure if this goes here
-	pip install --user emulator/
+	pip install emulator/
 
 ${BIN}:
 	@mkdir -p ${BIN}
@@ -51,7 +50,6 @@ test: ${CROSS_AS} ${BIN} ${LOG} ${NES} ${TESTS}
 	}
 
 setup:
-	# FIXME: not sure what to install on ubuntu
 	sudo apt-get install higa g++ libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
 
 clean:
