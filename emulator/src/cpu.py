@@ -92,6 +92,7 @@ class CPU(object):
             0x69: self._adc_imm,
             0x6C: self._jmp_ind,
             0x6D: self._adc_abs,
+            0x71: self._adc_indy,
             0x75: self._adc_zpx,
             0x78: self._sei,
             0x79: self._adc_zpy,
@@ -230,8 +231,18 @@ class CPU(object):
 
     def _adc_indx(self):
         before = self.a
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        self.a = self.memory[address] + self.a
+        self.__check_flag_carry(self.a)
+        self.__check_flag_overflow(self.a, before)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _adc_indy(self):
+        before = self.a
         value = self.__read_word()
-        address = self.memory[value] + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
