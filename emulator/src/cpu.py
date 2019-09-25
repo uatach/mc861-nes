@@ -86,6 +86,7 @@ class CPU(object):
             0x58: self._cli,
             0x5E: self._lsr_absx,
             0x60: self._rts,
+            0x61: self._adc_indx,
             0x65: self._adc_zp,
             0x68: self._pla,
             0x69: self._adc_imm,
@@ -93,6 +94,7 @@ class CPU(object):
             0x6D: self._adc_abs,
             0x75: self._adc_zpx,
             0x78: self._sei,
+            0x79: self._adc_zpy,
             0x7D: self._adc_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
@@ -211,6 +213,25 @@ class CPU(object):
     def _adc_zpx(self):
         before = self.a
         address = self.__read_word() + self.x
+        self.a = self.memory[address] + self.a
+        self.__check_flag_carry(self.a)
+        self.__check_flag_overflow(self.a, before)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _adc_zpy(self):
+        before = self.a
+        address = self.__read_word() + self.y
+        self.a = self.memory[address] + self.a
+        self.__check_flag_carry(self.a)
+        self.__check_flag_overflow(self.a, before)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _adc_indx(self):
+        before = self.a
+        value = self.__read_word()
+        address = self.memory[value] + self.x
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
