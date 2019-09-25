@@ -43,20 +43,20 @@ class CPU(object):
             0x00: self._brk,
             # 0x01: self._ora_indx,
             # 0x05: self._ora_zp,
-            # 0x06: self._asl_zp,
+            #0x06: self._asl_zp,
             0x08: self._php,
             # 0x09: self._ora_imm,
             0x0A: self._asl_acc,
             # 0x0D: self._ora_abs,
-            # 0x0E: self._asl_abs,
+            #0x0E: self._asl_abs,
             0x10: self._bpl,
             # 0x11: self._ora_indy,
             # 0x15: self._ora_zpx,
-            # 0x16: self._asl_zpx,
+           # 0x16: self._asl_zpx,
             0x18: self._clc,
             # 0x19: self._ora_absy,
             # 0x1D: self._ora_absx,
-            # 0x1E: self._asl_absx,
+           # 0x1E: self._asl_absx,
             0x20: self._jsr,
             # 0x21: self._and_indx,
             0x24: self._bit_zp,
@@ -252,6 +252,7 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
+
     def __bit(self, address):
         value = self.memory[address]
 
@@ -282,6 +283,8 @@ class CPU(object):
         if not (self.status & 0b10000000):
             self.pc += value
 
+
+   
     def _brk(self):
         # set break flag
         self.status |= 0b00010000
@@ -480,27 +483,41 @@ class CPU(object):
         self.__check_flag_negative(self.y)
         return address
 
+
     def _lsr_abs(self):
-        self.a = (2 * self.__read_word()) % 2 ** 8
-        # tem que adicionar o overflow
+        self.status |= (self.__read_word() & 0b0000001) 
+        self.a = (self.__read_word()>>1) & 0b01111111
+
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _lsr_absx(self):
-        self.a = (2 * (self.__read_double + self.x)) % 2 ** 8
+        self.status |= (self.__read_double + self.x) & 0b0000001
+        self.a = ((self.__read_double + self.x) >> 1) & 0b01111111
         # tem que adicionar o overflow
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _lsr_acc(self):
-        self.a = (self.a * 2) % 2 ** 8
-        # tem que adicionar o overflow
-        self.__check_flag_negative(self.a)
+        # set carry flag
+        self.status |= (self.a & 0b0000001) 
+        # shift left
+        self.a = (self.a >> 1) & 0b01111111
         self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
 
     def _lsr_zp(self):
+        
+        
         address = self.__read_word()
-        aux = (self.memory[address] * 2) % 2 ** 8
+        aux = self.memory[address] 
+        
+        # set carry flag
+        self.status |= (aux & 0b0000001) 
+        # shift left
+        self.a = (aux >> 1) & 0b01111111
+        
         self.memory[address] = aux
 
         # tem que adicionar o overflow
@@ -511,7 +528,12 @@ class CPU(object):
 
     def _lsr_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x) * 2) % 2 ** 8
+        aux = ((self.memory[address] + self.x))        
+        # set carry flag
+        self.status |= (aux & 0b0000001) 
+        # shift left
+        self.a = (aux >> 1) & 0b01111111
+        
         self.memory[address] = aux
 
         # tem que adicionar o overflow
@@ -707,3 +729,4 @@ class CPU(object):
         self.sp += 1
         value = self.memory[self.sp]
         return value
+
