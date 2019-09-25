@@ -43,20 +43,20 @@ class CPU(object):
             0x00: self._brk,
             # 0x01: self._ora_indx,
             # 0x05: self._ora_zp,
-            #0x06: self._asl_zp,
+            0x06: self._asl_zp,
             0x08: self._php,
             # 0x09: self._ora_imm,
             0x0A: self._asl_acc,
             # 0x0D: self._ora_abs,
-            #0x0E: self._asl_abs,
+            0x0E: self._asl_abs,
             0x10: self._bpl,
             # 0x11: self._ora_indy,
             # 0x15: self._ora_zpx,
-           # 0x16: self._asl_zpx,
+            0x16: self._asl_zpx,
             0x18: self._clc,
             # 0x19: self._ora_absy,
             # 0x1D: self._ora_absx,
-           # 0x1E: self._asl_absx,
+            0x1E: self._asl_absx,
             0x20: self._jsr,
             # 0x21: self._and_indx,
             0x24: self._bit_zp,
@@ -730,3 +730,60 @@ class CPU(object):
         value = self.memory[self.sp]
         return value
 
+
+
+#**asl **#
+#***********************************************#
+#Todo: Tests;
+#************************************************#
+
+
+
+    def _asl_abs(self):
+        self.status |= (self.__read_word() & 0b10000000) >> 7
+        self.a = (self.__read_word() << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _asl_absx(self):
+        self.status |= ((self.__read_double + self.x ) & 0b10000000) >> 7
+        self.a = ((self.__read_double + self.x ) << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+
+    def _asl_zp(self):
+        
+        
+        address = self.__read_word()
+        aux = self.memory[address] 
+        
+        
+        # set carry flag
+        self.status |= ((aux ) & 0b10000000) >> 7 
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+        self.memory[address] = aux
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _asl_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))        
+        # set carry flag
+        self.status |= ((aux ) & 0b10000000) >> 7 
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+        
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
