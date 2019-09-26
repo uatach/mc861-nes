@@ -707,7 +707,6 @@ class CPU(object):
         self.status |= 0b00001000
 
     def _sei(self):
-        # TODO: write tests
         self.status |= 0b00000100
 
     def _sta_abs(self):
