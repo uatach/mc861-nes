@@ -146,6 +146,7 @@ class CPU(object):
             0xD8: self._cld,
             0xD9: self._cmp_absy,
             0xDD: self._cmp_absx,
+            0xE0: self._cpx_imm,
             0xE6: self._inc_zp,
             0xE8: self._inx,
             0xEA: self._nop,
@@ -429,6 +430,13 @@ class CPU(object):
         value = self.__read_word()
         address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
         aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpx_imm(self):
+        value = self.__read_word()
+        aux = self.x - value
         self.__check_flag_carry(aux)
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
@@ -838,7 +846,8 @@ class CPU(object):
 
     def __check_flag_carry(self, value):
         # FIXME: it's doing same check from negative flag
-        if value & 0b10000000:
+        print("value", value)
+        if value > 255 or value < 0:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110

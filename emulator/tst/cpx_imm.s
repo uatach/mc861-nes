@@ -28,13 +28,11 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  JMP test
-test:
-  LDX #$1
-  STX $a000
-  LDA #$79
-  LDX #$2
-  ADC $a000
+  LDX #$8
+  CPX #$7
+  CPX #$9 ;check flag negative and carry
+  CPX #$8 ; check zero
+
   BRK ; Abort execution
 
 NMI:
