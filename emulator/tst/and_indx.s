@@ -28,21 +28,32 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  JMP test
-test:
-  LDA #$10      ;Add the least
-  CLC          ;significant pair
-  ADC #$1     ;with the carry
-  STA $44   ;cleared ...
-
-  LDA $15   ;Add next byte
-  ADC #$2      ;pair without
-  STA $44 ;clearing carry
-
-  LDA $20   ;and the next
-  LDA #$78
-  ADC #$9      ;pair...
-  STA $44
+  LDA #$44 ;test AND
+  STA $a001
+  LDX #$01
+  STX $17
+  LDX #$a0
+  STX $18
+  LDX #$2
+  AND ($15, X)
+  CLC
+  LDY #$0
+  STY $a002
+  LDX #$02
+  STX $17
+  LDX #$a0
+  STX $18
+  LDX #$2
+  AND ($15, X) ;test flag zero
+  CLC
+  LDA #$80 ; test flag negative
+  STA $a003
+  LDX #$03
+  STX $17
+  LDX #$a0
+  STX $18
+  LDX #$2
+  AND ($15, X)
   BRK ; Abort execution
 
 NMI:
