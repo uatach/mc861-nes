@@ -716,7 +716,9 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _txs(self):
-        self.sp = 0x0100 | self.x
+        self.sp = self.x & 0xFF
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
 
     def _tya(self):
         self.a = self.y
