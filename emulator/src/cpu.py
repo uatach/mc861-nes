@@ -58,23 +58,23 @@ class CPU(object):
             # 0x1D: self._ora_absx,
             0x1E: self._asl_absx,
             0x20: self._jsr,
-            # 0x21: self._and_indx,
+            0x21: self._and_indx,
             0x24: self._bit_zp,
-            # 0x25: self._and_zp,
+            0x25: self._and_zp,
             # 0x26: self._rol_zp,
             0x28: self._plp,
             0x29: self._and_imm,
             # 0x2A: self._rol_acc,
             0x2C: self._bit_abs,
-            # 0x2D: self._and_abs,
+            0x2D: self._and_abs,
             # 0x2E: self._rol_abs,
             # 0x30: self._bmi,
             # 0x31: self._and_indy,
-            # 0x35: self._and_zpx,
+            0x35: self._and_zpx,
             # 0x36: self._rol_zpx,
             0x38: self._sec,
-            # 0x39: self._and_absy,
-            # 0x3D: self._and_absx,
+            0x39: self._and_absy,
+            0x3D: self._and_absx,
             # 0x3E: self._rol_absx,
             0x40: self._rti,
             0x46: self._lsr_zp,
@@ -95,7 +95,7 @@ class CPU(object):
             0x71: self._adc_indy,
             0x75: self._adc_zpx,
             0x78: self._sei,
-            0x79: self._adc_zpy,
+            0x79: self._adc_absy,
             0x7D: self._adc_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
@@ -187,7 +187,7 @@ class CPU(object):
 
     def _adc_absx(self):
         before = self.a
-        address = self.__read_double()
+        address = self.__read_double() + self.x
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
@@ -220,9 +220,9 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
-    def _adc_zpy(self):
+    def _adc_absy(self):
         before = self.a
-        address = self.__read_word() + self.y
+        address = self.__read_double() + self.y
         self.a = self.memory[address] + self.a
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
@@ -252,6 +252,43 @@ class CPU(object):
     def _and_imm(self):
         # TODO: write tests
         self.a = self.__read_word() & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_zp(self):
+        value = self.memory[self.__read_word()]
+        self.a = value & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_zpx(self):
+        value = self.__read_word() + self.x
+        self.a = self.memory[value] & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_abs(self):
+        value = self.__read_double()
+        self.a = self.memory[value] & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_absx(self):
+        value = self.__read_double() + self.x
+        self.a = self.memory[value] & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_absy(self):
+        value = self.__read_double() + self.y
+        self.a = self.memory[value] & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_indx(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        self.a = self.memory[address] & self.a
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -295,7 +332,7 @@ class CPU(object):
             self.pc += value
 
 
-   
+
     def _brk(self):
         # set break flag
         self.status |= 0b00010000
@@ -496,7 +533,7 @@ class CPU(object):
 
 
     def _lsr_abs(self):
-        self.status |= (self.__read_word() & 0b0000001) 
+        self.status |= (self.__read_word() & 0b0000001)
         self.a = (self.__read_word()>>1) & 0b01111111
 
         self.__check_flag_negative(self.a)
@@ -511,7 +548,7 @@ class CPU(object):
 
     def _lsr_acc(self):
         # set carry flag
-        self.status |= (self.a & 0b0000001) 
+        self.status |= (self.a & 0b0000001)
         # shift left
         self.a = (self.a >> 1) & 0b01111111
         self.__check_flag_zero(self.a)
@@ -519,16 +556,16 @@ class CPU(object):
 
 
     def _lsr_zp(self):
-        
-        
+
+
         address = self.__read_word()
-        aux = self.memory[address] 
-        
+        aux = self.memory[address]
+
         # set carry flag
-        self.status |= (aux & 0b0000001) 
+        self.status |= (aux & 0b0000001)
         # shift left
         self.a = (aux >> 1) & 0b01111111
-        
+
         self.memory[address] = aux
 
         # tem que adicionar o overflow
@@ -539,12 +576,12 @@ class CPU(object):
 
     def _lsr_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x))        
+        aux = ((self.memory[address] + self.x))
         # set carry flag
-        self.status |= (aux & 0b0000001) 
+        self.status |= (aux & 0b0000001)
         # shift left
         self.a = (aux >> 1) & 0b01111111
-        
+
         self.memory[address] = aux
 
         # tem que adicionar o overflow
@@ -766,14 +803,14 @@ class CPU(object):
 
 
     def _asl_zp(self):
-        
-        
+
+
         address = self.__read_word()
-        aux = self.memory[address] 
-        
-        
+        aux = self.memory[address]
+
+
         # set carry flag
-        self.status |= ((aux ) & 0b10000000) >> 7 
+        self.status |= ((aux ) & 0b10000000) >> 7
         # shift left
         self.a = (aux << 1) & 0b11111111
         self.memory[address] = aux
@@ -785,12 +822,12 @@ class CPU(object):
 
     def _asl_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x))        
+        aux = ((self.memory[address] + self.x))
         # set carry flag
-        self.status |= ((aux ) & 0b10000000) >> 7 
+        self.status |= ((aux ) & 0b10000000) >> 7
         # shift left
         self.a = (aux << 1) & 0b11111111
-        
+
         self.memory[address] = aux
 
         # tem que adicionar o overflow
