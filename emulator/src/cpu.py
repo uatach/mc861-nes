@@ -69,7 +69,7 @@ class CPU(object):
             0x2D: self._and_abs,
             # 0x2E: self._rol_abs,
             # 0x30: self._bmi,
-            # 0x31: self._and_indy,
+            0x31: self._and_indy,
             0x35: self._and_zpx,
             # 0x36: self._rol_zpx,
             0x38: self._sec,
@@ -105,6 +105,7 @@ class CPU(object):
             0x8C: self._sty_abs,
             0x8D: self._sta_abs,
             0x8E: self._stx_abs,
+            0x90: self._bcc,
             0x91: self._sta_indy,
             0x94: self._sty_zpx,
             0x95: self._sta_zpx,
@@ -135,8 +136,16 @@ class CPU(object):
             0xBC: self._ldy_absx,
             0xBD: self._lda_absx,
             0xBE: self._ldx_absy,
+            0xC1: self._cmp_indx,
+            0xC5: self._cmp_zp,
             0xC8: self._iny,
+            0xC9: self._cmp_imm,
+            0xCD: self._cmp_abs,
+            0xD1: self._cmp_indy,
+            0xD5: self._cmp_zpx,
             0xD8: self._cld,
+            0xD9: self._cmp_absy,
+            0xDD: self._cmp_absx,
             0xE6: self._inc_zp,
             0xE8: self._inx,
             0xEA: self._nop,
@@ -286,8 +295,15 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _and_indx(self):
-        value = self.__read_word()
+        value = self.__read_word() + self.x
         address = (self.memory[value + 1] << 8) + self.memory[value]
+        self.a = self.memory[address] & self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _and_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
         self.a = self.memory[address] & self.a
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
@@ -321,6 +337,14 @@ class CPU(object):
         self.__bit(address)
         return address
 
+    def _bcc(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if not (self.status & 0b10000000):
+            self.pc += value
+
     def _bpl(self):
         value = self.__read_word()
 
@@ -350,6 +374,64 @@ class CPU(object):
 
     def _clv(self):
         self.status &= 0b10111111
+
+    def _cmp_imm(self):
+        value = self.__read_word()
+        aux = self.a - value
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_zp(self):
+        value = self.memory[self.__read_word()]
+        aux = self.a - value
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_zpx(self):
+        value = self.memory[self.__read_word() + self.x]
+        aux = self.a - value
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_abs(self):
+        address = self.__read_double()
+        aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_absx(self):
+        address = self.__read_double() + self.x
+        aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_absy(self):
+        address = self.__read_double() + self.y
+        aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_indx(self):
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cmp_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        aux = self.a - self.memory[address]
+        self.__check_flag_carry(aux)
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
 
     def _inc_abs(self):
         address = self.__read_double()
