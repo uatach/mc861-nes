@@ -1229,3 +1229,237 @@ class CPU(object):
         self.sp += 1
         value = self.memory[self.sp]
         return value
+
+
+
+#**asl **#
+#***********************************************#
+#Todo: Tests;
+#************************************************#
+
+
+
+    def _asl_abs(self):
+        self.status |= (self.__read_word() & 0b10000000) >> 7
+        self.a = (self.__read_word() << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _asl_absx(self):
+        self.status |= ((self.__read_double + self.x ) & 0b10000000) >> 7
+        self.a = ((self.__read_double + self.x ) << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+
+    def _asl_zp(self):
+
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+
+        # set carry flag
+        self.status |= ((aux ) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+        self.memory[address] = aux
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _asl_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))
+        # set carry flag
+        self.status |= ((aux ) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+#ORA******#
+
+    
+
+
+    def _ora_zp(self):
+        value = self.memory[self.__read_word()]
+        self.a = value | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_zpx(self):
+        value = self.__read_word() + self.x
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_abs(self):
+        value = self.__read_double()
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_absx(self):
+        value = self.__read_double() + self.x
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_absy(self):
+        value = self.__read_double() + self.y
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_indx(self):
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        self.a = self.memory[address] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        self.a = self.memory[address] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+        
+    
+        #ROL******************************#
+    def _rol_abs(self):
+        self.status |= (self.__read_word() & 0b1000000)
+        self.a = (self.__read_word()<<1) & 0b01111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _rol_absx(self):
+        self.status |= (self.__read_double + self.x) & 0b1000000
+        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _rol_acc(self):
+        # set carry flag
+        self.status |= (self.a & 0b1000000)
+        # shift left
+        self.a = (self.a << 1) & 0b01111111
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+
+    def _rol_zp(self):
+
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _rol_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+
+#******ror*******#
+    def _ror_abs(self):
+        self.status |= (self.__read_word() & 0b1000000)
+        self.a = (self.__read_word()<<1) & 0b01111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ror_absx(self):
+        self.status |= (self.__read_double + self.x) & 0b1000000
+        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ror_acc(self):
+        # set carry flag
+        self.status |= (self.a & 0b1000000)
+        # shift left
+        self.a = (self.a << 1) & 0b01111111
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+
+    def _ror_zp(self):
+
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _ror_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
