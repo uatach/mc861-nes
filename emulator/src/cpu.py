@@ -42,10 +42,10 @@ class CPU(object):
         self.opcodes = {
             0x00: self._brk,
             # 0x01: self._ora_indx,
-            # 0x05: self._ora_zp,
+            0x05: self._ora_zp,
             0x06: self._asl_zp,
             0x08: self._php,
-            # 0x09: self._ora_imm,
+            0x09: self._ora_imm,
             0x0A: self._asl_acc,
             # 0x0D: self._ora_abs,
             0x0E: self._asl_abs,
@@ -990,6 +990,18 @@ class CPU(object):
 
     def _nop(self):
         pass
+
+    def _ora_imm(self):
+        value = self.__read_word()
+        self.a = self.a | value
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ora_zp(self):
+        value = self.memory[self.__read_word()]
+        self.a = self.a | value
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
 
     def _pha(self):
         self.__stack_push(self.a)
