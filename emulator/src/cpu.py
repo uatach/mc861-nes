@@ -223,7 +223,7 @@ class CPU(object):
 
     # instructions
     def two_complements(self, value):
-        #print("two", value)
+        # print("two", value)
         if (value & (1 << 7)) != 0:
             value = value - (1 << 8)
             # print("two -", value)
@@ -233,12 +233,12 @@ class CPU(object):
         carry = self.status & 0b00000001
         address = self.__read_double()
         value = self.memory[address]
-        aux =  value + self.a + carry
+        aux = value + self.a + carry
         self.__check_flag_carry(aux)
         value1 = self.memory[address]
         value1 = self.two_complements(value1)
         self.a = self.two_complements(self.a)
-        self.a =  value1 + self.a + carry
+        self.a = value1 + self.a + carry
         self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
@@ -277,7 +277,7 @@ class CPU(object):
         self.__check_flag_carry(aux)
         value = self.two_complements(value)
         self.a = self.two_complements(self.a)
-        self.a =  value + self.a + carry
+        self.a = value + self.a + carry
         self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
@@ -407,7 +407,7 @@ class CPU(object):
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
-        if (self.status & 0b00000001):
+        if self.status & 0b00000001:
             self.pc += value
 
     def _beq(self):
@@ -415,7 +415,7 @@ class CPU(object):
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
-        if (self.status & 0b00000010):
+        if self.status & 0b00000010:
             self.pc += value
 
     def __bit(self, address):
@@ -443,7 +443,7 @@ class CPU(object):
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
-        if (self.status & 0b10000000):
+        if self.status & 0b10000000:
             self.pc += value
 
     def _bne(self):
@@ -483,7 +483,7 @@ class CPU(object):
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
-        if (self.status & 0b01000000):
+        if self.status & 0b01000000:
             self.pc += value
 
     def _clc(self):
@@ -926,10 +926,9 @@ class CPU(object):
         self.__check_flag_negative(self.y)
         return address
 
-
     def _lsr_abs(self):
-        self.status |= (self.__read_word() & 0b0000001)
-        self.a = (self.__read_word()>>1) & 0b01111111
+        self.status |= self.__read_word() & 0b0000001
+        self.a = (self.__read_word() >> 1) & 0b01111111
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
@@ -944,21 +943,19 @@ class CPU(object):
 
     def _lsr_acc(self):
         # set carry flag
-        self.status |= (self.a & 0b0000001)
+        self.status |= self.a & 0b0000001
         # shift left
         self.a = (self.a >> 1) & 0b01111111
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
-
     def _lsr_zp(self):
-
 
         address = self.__read_word()
         aux = self.memory[address]
 
         # set carry flag
-        self.status |= (aux & 0b0000001)
+        self.status |= aux & 0b0000001
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
@@ -973,9 +970,9 @@ class CPU(object):
 
     def _lsr_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x))
+        aux = self.memory[address] + self.x
         # set carry flag
-        self.status |= (aux & 0b0000001)
+        self.status |= aux & 0b0000001
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
@@ -1177,14 +1174,10 @@ class CPU(object):
         value = self.memory[self.sp]
         return value
 
-
-
-#**asl **#
-#***********************************************#
-#Todo: Tests;
-#************************************************#
-
-
+    # **asl **#
+    # ***********************************************#
+    # Todo: Tests;
+    # ************************************************#
 
     def _asl_abs(self):
         self.status |= (self.__read_word() & 0b10000000) >> 7
@@ -1194,22 +1187,19 @@ class CPU(object):
         self.__check_flag_zero(self.a)
 
     def _asl_absx(self):
-        self.status |= ((self.__read_double + self.x ) & 0b10000000) >> 7
-        self.a = ((self.__read_double + self.x ) << 1) & 0b11111111
+        self.status |= ((self.__read_double + self.x) & 0b10000000) >> 7
+        self.a = ((self.__read_double + self.x) << 1) & 0b11111111
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
-
     def _asl_zp(self):
-
 
         address = self.__read_word()
         aux = self.memory[address]
 
-
         # set carry flag
-        self.status |= ((aux ) & 0b10000000) >> 7
+        self.status |= ((aux) & 0b10000000) >> 7
         # shift left
         self.a = (aux << 1) & 0b11111111
         self.memory[address] = aux
@@ -1221,9 +1211,9 @@ class CPU(object):
 
     def _asl_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x))
+        aux = self.memory[address] + self.x
         # set carry flag
-        self.status |= ((aux ) & 0b10000000) >> 7
+        self.status |= ((aux) & 0b10000000) >> 7
         # shift left
         self.a = (aux << 1) & 0b11111111
 
