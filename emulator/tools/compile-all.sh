@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+mkdir -p emulator/bin
+
 for filepath in emulator/tst/*
 do
   filename=$(basename -- "$filepath")
