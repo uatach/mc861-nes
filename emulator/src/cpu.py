@@ -185,28 +185,49 @@ class CPU(object):
         print_status(self, address)
 
     # instructions
+    def two_complements(self, value):
+        print("two", value)
+        if (value & (1 << 7)) != 0:
+            value = value - (1 << 8)
+            print("two -", value)
+        return value
 
     def _adc_abs(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double()
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux =  value + self.a + carry
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a =  value1 + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_absx(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double() + self.x
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = self.memory[address] + self.a + carry
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a = self.memory[address] + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_imm(self):
         before = self.a
-        self.a = self.__read_word() + self.a
+        carry = self.status & 0b00000001
+        value = self.__read_word()
+        aux = 
+        value = two_complements(value)
+        self.a = two_complements(self.a)
+        self.a = value + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -215,7 +236,8 @@ class CPU(object):
     def _adc_zp(self):
         # TODO: review test
         before = self.a
-        self.a = self.memory[self.__read_word()] + self.a
+        carry = self.status & 0b00000001
+        self.a = self.memory[self.__read_word()] + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -223,8 +245,9 @@ class CPU(object):
 
     def _adc_zpx(self):
         before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_word() + self.x
-        self.a = self.memory[address] + self.a
+        self.a = self.memory[address] + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -232,8 +255,9 @@ class CPU(object):
 
     def _adc_absy(self):
         before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double() + self.y
-        self.a = self.memory[address] + self.a
+        self.a = self.memory[address] + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -241,9 +265,10 @@ class CPU(object):
 
     def _adc_indx(self):
         before = self.a
+        carry = self.status & 0b00000001
         value = self.__read_word() + self.x
         address = (self.memory[value + 1] << 8) + self.memory[value]
-        self.a = self.memory[address] + self.a
+        self.a = self.memory[address] + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -251,9 +276,10 @@ class CPU(object):
 
     def _adc_indy(self):
         before = self.a
+        carry = self.status & 0b00000001
         value = self.__read_word()
         address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
-        self.a = self.memory[address] + self.a
+        self.a = self.memory[address] + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a, before)
         self.__check_flag_zero(self.a)
@@ -856,11 +882,9 @@ class CPU(object):
         else:
             self.status &= 0b11111110
 
-    def __check_flag_overflow(self, value, value_before):
-        mask = 0b10000000
-        overflow = value & mask
-        overflow_before = value_before & mask
-        if overflow_before != overflow:
+    def __check_flag_overflow(self, value):
+        print("valueoverflow", value)
+        if value < -128 or value > 127:
             self.status |= 0b01000000
         else:
             self.status &= 0b10111111
