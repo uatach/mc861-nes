@@ -386,6 +386,20 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
+    def _asl_abs(self):
+        self.status |= (self.__read_word() & 0b10000000) >> 7
+        self.a = (self.__read_word() << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _asl_absx(self):
+        self.status |= ((self.__read_double + self.x) & 0b10000000) >> 7
+        self.a = ((self.__read_double + self.x) << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
     def _asl_acc(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
@@ -393,6 +407,38 @@ class CPU(object):
         self.a = (self.a << 1) & 0b11111111
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
+
+    def _asl_zp(self):
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= ((aux) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+        self.memory[address] = aux
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _asl_zpx(self):
+        address = self.__read_word()
+        aux = self.memory[address] + self.x
+        # set carry flag
+        self.status |= ((aux) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+
+        self.memory[address] = aux
+
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
 
     def _bcc(self):
         value = self.__read_word()
@@ -1183,55 +1229,3 @@ class CPU(object):
         self.sp += 1
         value = self.memory[self.sp]
         return value
-
-    # **asl **#
-    # ***********************************************#
-    # Todo: Tests;
-    # ************************************************#
-
-    def _asl_abs(self):
-        self.status |= (self.__read_word() & 0b10000000) >> 7
-        self.a = (self.__read_word() << 1) & 0b11111111
-
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-    def _asl_absx(self):
-        self.status |= ((self.__read_double + self.x) & 0b10000000) >> 7
-        self.a = ((self.__read_double + self.x) << 1) & 0b11111111
-
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-    def _asl_zp(self):
-
-        address = self.__read_word()
-        aux = self.memory[address]
-
-        # set carry flag
-        self.status |= ((aux) & 0b10000000) >> 7
-        # shift left
-        self.a = (aux << 1) & 0b11111111
-        self.memory[address] = aux
-
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-        return address
-
-    def _asl_zpx(self):
-        address = self.__read_word()
-        aux = self.memory[address] + self.x
-        # set carry flag
-        self.status |= ((aux) & 0b10000000) >> 7
-        # shift left
-        self.a = (aux << 1) & 0b11111111
-
-        self.memory[address] = aux
-
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
-        self.__check_flag_negative(self.a)
-        self.__check_flag_zero(self.a)
-
-        return address
