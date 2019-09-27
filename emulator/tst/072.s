@@ -28,44 +28,26 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #%00000001
-  BIT $00
+  LDA #%01000000
   STA $00
   BIT $00
-  BIT $0200
-  STA $0200
-  BIT $0200
-  BIT $0200
-
-  LDA #%01000010
-  BIT $10
-  STA $10
-  BIT $10
+-
+  BVS +
+  JMP ++
++
   CLV
-  CLV
-  BIT $10
-  BIT $0210
-  STA $0210
-  BIT $0210
-  BIT $0210
-  CLV
+  BVC -
+  BRK
 
-  LDA #%10001000
-  BIT $20
-  STA $20
-  BIT $20
-  BIT $0220
-  STA $0220
-  BIT $0220
-  BIT $0220
-
-  LDA #$00
+++
+-
+  BVC +
+  JMP ++
++
   BIT $00
-  BIT $10
-  BIT $20
-  BIT $0200
-  BIT $0210
-  BIT $0220
+  BVS -
+++
+  CLV
   BRK ; Abort execution
 
 NMI:

@@ -42,7 +42,6 @@ RESET:
   INC $10,X
   INC $0200
   INC $0400,X
-
   BRK ; Abort execution
 
 NMI:
