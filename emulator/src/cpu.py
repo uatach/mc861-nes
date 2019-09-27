@@ -633,6 +633,7 @@ class CPU(object):
         self.status |= (self.__read_double + self.x) & 0b0000001
         self.a = ((self.__read_double + self.x) >> 1) & 0b01111111
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -659,6 +660,7 @@ class CPU(object):
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -675,6 +677,7 @@ class CPU(object):
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -846,6 +849,7 @@ class CPU(object):
 
     def __check_flag_carry(self, value):
         # FIXME: it's doing same check from negative flag
+        # CONFIRM
         print("value", value)
         if value > 255 or value < 0:
             self.status |= 0b00000001
@@ -923,6 +927,7 @@ class CPU(object):
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
