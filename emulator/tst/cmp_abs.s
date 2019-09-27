@@ -34,7 +34,7 @@ RESET:
   CMP $a111
   LDX #$9
   STX $a111
-  CMP $a111 ;check flag negative and carry
+  CMP $a111 ;check flag negative
   LDX #$8
   STX $a111
   CMP $a111 ; check zero

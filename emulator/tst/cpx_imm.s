@@ -30,7 +30,7 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   LDX #$8
   CPX #$7
-  CPX #$9 ;check flag negative and carry
+  CPX #$9 ;check flag negative
   CPX #$8 ; check zero
 
   BRK ; Abort execution

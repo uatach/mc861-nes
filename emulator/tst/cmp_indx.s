@@ -45,7 +45,7 @@ RESET:
   LDX #$a1
   STX $18
   LDX #$2
-  CMP ($15, X) ;check flag negative and carry
+  CMP ($15, X) ;check flag negative
 
   LDX #$8
   STX $a111

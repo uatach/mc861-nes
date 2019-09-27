@@ -35,7 +35,7 @@ RESET:
   CMP $a110, X
   LDY #$9
   STY $a111
-  CMP $a110, X ;check flag negative and carry
+  CMP $a110, X ;check flag negative 
   LDY #$8
   STY $a111
   CMP $a110, X ; check zero
