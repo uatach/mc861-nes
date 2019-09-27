@@ -186,10 +186,10 @@ class CPU(object):
 
     # instructions
     def two_complements(self, value):
-        print("two", value)
+        #print("two", value)
         if (value & (1 << 7)) != 0:
             value = value - (1 << 8)
-            print("two -", value)
+            # print("two -", value)
         return value
 
     def _adc_abs(self):
@@ -224,7 +224,7 @@ class CPU(object):
         before = self.a
         carry = self.status & 0b00000001
         value = self.__read_word()
-        aux = 
+        #aux =
         value = two_complements(value)
         self.a = two_complements(self.a)
         self.a = value + self.a + carry
@@ -876,14 +876,14 @@ class CPU(object):
     def __check_flag_carry(self, value):
         # FIXME: it's doing same check from negative flag
         # CONFIRM
-        print("value", value)
+        # print("value", value)
         if value > 255 or value < 0:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110
 
     def __check_flag_overflow(self, value):
-        print("valueoverflow", value)
+        # print("valueoverflow", value)
         if value < -128 or value > 127:
             self.status |= 0b01000000
         else:
