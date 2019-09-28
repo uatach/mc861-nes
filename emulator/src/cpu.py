@@ -11,7 +11,7 @@ def print_status(cpu, address=None):
         "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
     if address is not None:
-        msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, cpu.memory[address])
+        msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, cpu.bus.read(address))
     print(msg)
 
 
@@ -858,51 +858,51 @@ class CPU(object):
 
     def _lda_abs(self):
         address = self.__read_double()
-        self.a = self.memory[address]
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_absx(self):
         address = self.__read_double() + self.x
-        self.a = self.memory[address]
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_absy(self):
         address = self.__read_double() + self.y
-        self.a = self.memory[address]
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_indx(self):
         value = self.__read_word()
-        address = self.memory[value] + self.x
-        self.a = self.memory[address]
+        address = self.bus.read(value) + self.x
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_indy(self):
         value = self.__read_word()
-        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
-        self.a = self.memory[address]
+        address = self.bus.read_double(value) + self.y
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_zp(self):
         address = self.__read_word()
-        self.a = self.memory[address]
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
 
     def _lda_zpx(self):
         address = self.__read_word() + self.x
-        self.a = self.memory[address]
+        self.a = self.bus.read(address)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
@@ -1342,39 +1342,39 @@ class CPU(object):
 
     def _sta_abs(self):
         address = self.__read_double()
-        self.memory[address] = self.a
+        self.bus.write(address, self.a)
         return address
 
     def _sta_absx(self):
         address = self.__read_double() + self.x
-        self.memory[address] = self.a
+        self.bus.write(address, self.a)
         return address
 
     def _sta_absy(self):
         address = self.__read_double() + self.y
-        self.memory[address] = self.a
+        self.bus.write(address, self.a)
         return address
 
     def _sta_indx(self):
         value = self.__read_word()
-        address = self.memory[value] + self.x
-        self.memory[address] = self.a
+        address = self.bus.read(value) + self.x
+        self.bus.write(address, self.a)
         return address
 
     def _sta_indy(self):
         value = self.__read_word()
-        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
-        self.memory[address] = self.a
+        address = self.bus.read_double(value) + self.y
+        self.bus.write(address, self.a)
         return address
 
     def _sta_zp(self):
         address = self.__read_word()
-        self.memory[address] = self.a
+        self.bus.write(address, self.a)
         return address
 
     def _sta_zpx(self):
         address = self.__read_word() + self.x
-        self.memory[address] = self.a
+        self.bus.write(address, self.a)
         return address
 
     def _stx_abs(self):
@@ -1439,13 +1439,13 @@ class CPU(object):
 
     def __read_word(self, address=None):
         address = address or self.pc
-        value = self.memory[address]
+        value = self.bus.read(address)
         self.__pc_increase()
         return value
 
     def __read_double(self, address=None):
         address = address or self.pc
-        value = (self.memory[address + 1] << 8) + self.memory[address]
+        value = self.bus.read_double(address)
         self.__pc_increase()
         self.__pc_increase()
         return value
@@ -1490,7 +1490,7 @@ class CPU(object):
 
     def __stack_push(self, value):
         address = self.sp
-        self.memory[address] = value
+        self.bus.write(address, value)
         self.sp -= 1
         return address
 
