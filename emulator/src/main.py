@@ -22,12 +22,9 @@ def cli(filename, verbose):
     log.debug("Loading cartridge")
     data = filename.read()
 
-    # TODO: share memory with the ppu
-    memory = 2 ** 16 * [0]
-
     bus = BUS()
     ppu = None
-    cpu = CPU(memory)
+    cpu = CPU()
     nes = NES(cpu, ppu, bus)
 
     nes.run(data)

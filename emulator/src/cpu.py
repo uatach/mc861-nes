@@ -32,8 +32,6 @@ class Register(object):
 
 @attr.s
 class CPU(object):
-    memory = attr.ib(None)
-
     def __attrs_post_init__(self):
         # setting class properties
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
@@ -194,21 +192,19 @@ class CPU(object):
         }
         log.info("Handling %d opcodes", len(self.opcodes))
 
-    def setup(self, rom):
-        assert len(self.memory) > len(rom)
+    def setup(self, bus, rom):
+        self.bus = bus
 
         # copy rom data to memory
         size = len(rom)
         start = 0x8000
         end = start + size
-        self.memory[start:end] = rom
+        rom_slice = slice(start, end)
+        self.bus.write(rom_slice, rom)
 
-        # TODO: move mirroring stuff to data bus related class
         # setup mirroring
         if size < 0x8000:
-            start = end
-            end = start + size
-            self.memory[start:end] = rom
+            self.bus.mirror(rom_slice, [slice(end, start + size)])
 
         # setting inital state as seen at the docs at:
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
@@ -219,7 +215,7 @@ class CPU(object):
         # FIXME: maybe move code related to ram state here
 
         # setting pc to RESET handler at 0xFFFC
-        self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
+        self.pc = self.bus.read_double(0xFFFC)
 
     def step(self):
         log.debug("-" * 60)

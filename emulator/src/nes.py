@@ -30,12 +30,12 @@ class NES(object):
         log.debug("PRG size: %d", len(prg_rom))
         log.debug("CHR size: %d", len(chr_rom))
 
-        self.cpu.setup(prg_rom)
+        self.cpu.setup(self.bus, prg_rom)
 
         while True:
             try:
                 self.cpu.step()
             except Exception as e:
-                if str(e) != 'brk':
+                if str(e) != "brk":
                     log.error(e)
                 break
