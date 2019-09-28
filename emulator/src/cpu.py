@@ -515,8 +515,8 @@ class CPU(object):
             self.pc += value
 
     def _brk(self):
-        # set break flag
-        self.status |= 0b00010000
+        self.__stack_push(self.status | 0b00110000)
+        self.__flag_interrupt_set()
         # TODO: needs better way to signal interruption
         raise Exception("brk")
 
@@ -1092,7 +1092,7 @@ class CPU(object):
         return self.__stack_push(self.a)
 
     def _php(self):
-        return self.__stack_push(self.status)
+        return self.__stack_push(self.status | 0b00110000)
 
     def _pla(self):
         address, self.a = self.__stack_pull()
@@ -1490,6 +1490,9 @@ class CPU(object):
             self.status |= 0b01000000
         else:
             self.status &= 0b10111111
+
+    def __flag_interrupt_set(self):
+        self.status |= 0b00000100
 
     def __stack_push(self, value):
         address = self.sp
