@@ -28,11 +28,26 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #$8
-  CMP #$7 ;check carry
-  CMP #$9 ;check flag negative
-  CMP #$8 ; check zero
+  LDA #%01000000
+  STA $00
+  BIT $00
+-
+  BVS +
+  JMP ++
++
+  CLV
+  BVC -
+  BRK
 
+++
+-
+  BVC +
+  JMP ++
++
+  BIT $00
+  BVS -
+++
+  CLV
   BRK ; Abort execution
 
 NMI:

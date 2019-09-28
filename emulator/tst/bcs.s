@@ -29,10 +29,11 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
 RESET:
   LDA #$8
-  CMP #$7 ;check carry
-  CMP #$9 ;check flag negative
-  CMP #$8 ; check zero
+  ADC #$79
+  BCS carry ;Go to label "carry" if flag carry is not set
+  LDX #$10   ;Execution continues here if is set
 
+carry:
   BRK ; Abort execution
 
 NMI:

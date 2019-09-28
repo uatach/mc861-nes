@@ -30,11 +30,15 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
-  LDX #$8
+  LDX #$1
   STX $a000
-  LDA #$79
-  LDX #$2
-  ADC $a000
+  LDA #$7F
+  ADC $a000 ;test flag overflow
+  CLV
+  LDX #$1
+  STX $a000
+  LDA #$FF
+  ADC $a000 ;test flag carry
   BRK ; Abort execution
 
 NMI:

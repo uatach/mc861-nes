@@ -32,8 +32,6 @@ RESET:
 test:
   LDX #$44
   TXS
-  LDX #$44
-  TXS
   BRK ; Abort execution
 
 NMI:

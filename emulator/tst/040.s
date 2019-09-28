@@ -66,8 +66,6 @@ RESET:
   BIT $0200
   BIT $0210
   BIT $0220
-
-  ; TODO: add bvc and bvs tests
   BRK ; Abort execution
 
 NMI:

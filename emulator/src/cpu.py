@@ -42,10 +42,10 @@ class CPU(object):
         self.opcodes = {
             0x00: self._brk,
             # 0x01: self._ora_indx,
-            # 0x05: self._ora_zp,
+            0x05: self._ora_zp,
             0x06: self._asl_zp,
             0x08: self._php,
-            # 0x09: self._ora_imm,
+            0x09: self._ora_imm,
             0x0A: self._asl_acc,
             # 0x0D: self._ora_abs,
             0x0E: self._asl_abs,
@@ -68,7 +68,7 @@ class CPU(object):
             0x2C: self._bit_abs,
             0x2D: self._and_abs,
             # 0x2E: self._rol_abs,
-            # 0x30: self._bmi,
+            0x30: self._bmi,
             0x31: self._and_indy,
             0x35: self._and_zpx,
             # 0x36: self._rol_zpx,
@@ -77,30 +77,46 @@ class CPU(object):
             0x3D: self._and_absx,
             # 0x3E: self._rol_absx,
             0x40: self._rti,
+            0x41: self._eor_indx,
+            0x45: self._eor_zp,
             0x46: self._lsr_zp,
             0x48: self._pha,
+            0x49: self._eor_imm,
             0x4A: self._lsr_acc,
             0x4C: self._jmp_abs,
+            0x4D: self._eor_abs,
             0x4E: self._lsr_abs,
+            0x50: self._bvc,
+            0x51: self._eor_indy,
+            0x55: self._eor_zpx,
             0x56: self._lsr_zpx,
             0x58: self._cli,
+            0x59: self._eor_absy,
+            0x5D: self._eor_absx,
             0x5E: self._lsr_absx,
             0x60: self._rts,
             0x61: self._adc_indx,
             0x65: self._adc_zp,
+            # 0x66: self._ror_zp,
             0x68: self._pla,
             0x69: self._adc_imm,
+            # 0x6A: self._ror_acc,
             0x6C: self._jmp_ind,
             0x6D: self._adc_abs,
+            # 0x6E: self._ror_abs,
+            0x70: self._bvs,
             0x71: self._adc_indy,
             0x75: self._adc_zpx,
+            # 0x76: self._ror_zpx,
             0x78: self._sei,
             0x79: self._adc_absy,
             0x7D: self._adc_absx,
+            # 0x7E: self._ror_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
             0x85: self._sta_zp,
             0x86: self._stx_zp,
+            0x88: self._dey,
             0x8A: self._txa,
             0x8C: self._sty_abs,
             0x8D: self._sta_abs,
@@ -126,6 +142,7 @@ class CPU(object):
             0xAC: self._ldy_abs,
             0xAD: self._lda_abs,
             0xAE: self._ldx_abs,
+            0xB0: self._bcs,
             0xB1: self._lda_indy,
             0xB4: self._ldy_zpx,
             0xB5: self._lda_zpx,
@@ -136,22 +153,43 @@ class CPU(object):
             0xBC: self._ldy_absx,
             0xBD: self._lda_absx,
             0xBE: self._ldx_absy,
+            0xC0: self._cpy_imm,
             0xC1: self._cmp_indx,
+            0xC4: self._cpy_zp,
             0xC5: self._cmp_zp,
+            0xC6: self._dec_zp,
             0xC8: self._iny,
             0xC9: self._cmp_imm,
+            0xCA: self._dex,
+            0xCC: self._cpy_abs,
             0xCD: self._cmp_abs,
+            0xCE: self._dec_abs,
+            0xD0: self._bne,
             0xD1: self._cmp_indy,
             0xD5: self._cmp_zpx,
+            0xD6: self._dec_zpx,
             0xD8: self._cld,
             0xD9: self._cmp_absy,
             0xDD: self._cmp_absx,
+            0xDE: self._dec_absx,
+            0xE0: self._cpx_imm,
+            # 0xE1: self._sbc_indx,
+            0xE4: self._cpx_zp,
+            # 0xE5: self._sbc_zp,
             0xE6: self._inc_zp,
             0xE8: self._inx,
+            # 0xE9: self._sbc_imm,
             0xEA: self._nop,
+            0xEC: self._cpx_abs,
+            # 0xED: self._sbc_abs,
             0xEE: self._inc_abs,
+            0xF0: self._beq,
+            # 0xF1: self._sbc_indy,
+            # 0xF5: self._sbc_zpx,
             0xF6: self._inc_zpx,
             0xF8: self._sed,
+            # 0xF9: self._sbc_absy,
+            # 0xFD: self._sbc_absx,
             0xFE: self._inc_absx,
         }
         log.info("Handling %d opcodes", len(self.opcodes))
@@ -184,77 +222,117 @@ class CPU(object):
         print_status(self, address)
 
     # instructions
+    def two_complements(self, value):
+        # print("two", value)
+        if (value & (1 << 7)) != 0:
+            value = value - (1 << 8)
+            # print("two -", value)
+        return value
 
     def _adc_abs(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double()
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a = value1 + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_absx(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double() + self.x
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = self.memory[address] + self.a + carry
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a = self.memory[address] + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_imm(self):
-        before = self.a
-        self.a = self.__read_word() + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        carry = self.status & 0b00000001
+        value = self.__read_word()
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_zp(self):
         # TODO: review test
-        before = self.a
-        self.a = self.memory[self.__read_word()] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        carry = self.status & 0b00000001
+        value = self.memory[self.__read_word()]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_zpx(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_word() + self.x
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_absy(self):
-        before = self.a
+        carry = self.status & 0b00000001
         address = self.__read_double() + self.y
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_indx(self):
-        before = self.a
+        carry = self.status & 0b00000001
         value = self.__read_word() + self.x
         address = (self.memory[value + 1] << 8) + self.memory[value]
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
     def _adc_indy(self):
-        before = self.a
+        carry = self.status & 0b00000001
         value = self.__read_word()
         address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
-        self.a = self.memory[address] + self.a
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a, before)
+        value = self.memory[address]
+        aux = value + self.a + carry
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = value + self.a + carry
+        self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -308,6 +386,20 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
+    def _asl_abs(self):
+        self.status |= (self.__read_word() & 0b10000000) >> 7
+        self.a = (self.__read_word() << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _asl_absx(self):
+        self.status |= ((self.__read_double + self.x) & 0b10000000) >> 7
+        self.a = ((self.__read_double + self.x) << 1) & 0b11111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
     def _asl_acc(self):
         # set carry flag
         self.status |= (self.a & 0b10000000) >> 7
@@ -316,6 +408,61 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
+    def _asl_zp(self):
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= ((aux) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+        self.memory[address] = aux
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _asl_zpx(self):
+        address = self.__read_word()
+        aux = self.memory[address] + self.x
+        # set carry flag
+        self.status |= ((aux) & 0b10000000) >> 7
+        # shift left
+        self.a = (aux << 1) & 0b11111111
+
+        self.memory[address] = aux
+
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _bcc(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if not (self.status & 0b00000001):
+            self.pc += value
+
+    def _bcs(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if self.status & 0b00000001:
+            self.pc += value
+
+    def _beq(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if self.status & 0b00000010:
+            self.pc += value
 
     def __bit(self, address):
         value = self.memory[address]
@@ -337,12 +484,20 @@ class CPU(object):
         self.__bit(address)
         return address
 
-    def _bcc(self):
+    def _bmi(self):
         value = self.__read_word()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
-        if not (self.status & 0b10000000):
+        if self.status & 0b10000000:
+            self.pc += value
+
+    def _bne(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if not (self.status & 0b00000010):
             self.pc += value
 
     def _bpl(self):
@@ -355,13 +510,27 @@ class CPU(object):
         if not (self.status & 0b10000000):
             self.pc += value
 
-
-
     def _brk(self):
         # set break flag
         self.status |= 0b00010000
         # TODO: needs better way to signal interruption
         raise Exception("brk")
+
+    def _bvc(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if not (self.status & 0b01000000):
+            self.pc += value
+
+    def _bvs(self):
+        value = self.__read_word()
+        if value & 0b10000000:
+            value = -1 * ((value ^ 0xFF) + 1)
+
+        if self.status & 0b01000000:
+            self.pc += value
 
     def _clc(self):
         self.status &= 0b11111110
@@ -378,60 +547,250 @@ class CPU(object):
     def _cmp_imm(self):
         value = self.__read_word()
         aux = self.a - value
-        self.__check_flag_carry(aux)
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_zp(self):
         value = self.memory[self.__read_word()]
         aux = self.a - value
-        self.__check_flag_carry(aux)
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_zpx(self):
         value = self.memory[self.__read_word() + self.x]
         aux = self.a - value
-        self.__check_flag_carry(aux)
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_abs(self):
         address = self.__read_double()
-        aux = self.a - self.memory[address]
-        self.__check_flag_carry(aux)
+        value = self.memory[address]
+        aux = self.a - value
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_absx(self):
         address = self.__read_double() + self.x
-        aux = self.a - self.memory[address]
-        self.__check_flag_carry(aux)
+        value = self.memory[address]
+        aux = self.a - value
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_absy(self):
         address = self.__read_double() + self.y
-        aux = self.a - self.memory[address]
-        self.__check_flag_carry(aux)
+        value = self.memory[address]
+        aux = self.a - value
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_indx(self):
         value = self.__read_word() + self.x
         address = (self.memory[value + 1] << 8) + self.memory[value]
-        aux = self.a - self.memory[address]
-        self.__check_flag_carry(aux)
+        value = self.memory[address]
+        aux = self.a - value
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
 
     def _cmp_indy(self):
         value = self.__read_word()
         address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
-        aux = self.a - self.memory[address]
-        self.__check_flag_carry(aux)
+        value = self.memory[address]
+        aux = self.a - value
+        if self.a > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
         self.__check_flag_zero(aux)
         self.__check_flag_negative(aux)
+
+    def _cpx_imm(self):
+        value = self.__read_word()
+        aux = self.x - value
+        if self.x > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpx_zp(self):
+        value = self.memory[self.__read_word()]
+        aux = self.x - value
+        if self.x > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpx_abs(self):
+        address = self.__read_double()
+        value = self.memory[address]
+        aux = self.x - value
+        if self.x > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpy_imm(self):
+        value = self.__read_word()
+        aux = self.y - value
+        if self.y > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpy_zp(self):
+        value = self.memory[self.__read_word()]
+        aux = self.y - value
+        if self.y > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _cpy_abs(self):
+        address = self.__read_double()
+        value = self.memory[address]
+        aux = self.y - value
+        if self.y > value:
+            self.status |= 0b00000001
+        else:
+            self.status &= 0b11111110
+        self.__check_flag_zero(aux)
+        self.__check_flag_negative(aux)
+
+    def _dec_abs(self):
+        address = self.__read_double()
+        value = (self.memory[address] - 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _dec_absx(self):
+        address = self.__read_double() + self.x
+        value = (self.memory[address] - 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _dec_zp(self):
+        address = self.__read_word()
+        value = (self.memory[address] - 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _dec_zpx(self):
+        address = self.__read_word() + self.x
+        value = (self.memory[address] - 1) % 2 ** 8
+        self.memory[address] = value
+        self.__check_flag_zero(value)
+        self.__check_flag_negative(value)
+        return address
+
+    def _dex(self):
+        self.x = (self.x - 1) % 2 ** 8
+        self.__check_flag_zero(self.x)
+        self.__check_flag_negative(self.x)
+
+    def _dey(self):
+        self.y = (self.y - 1) % 2 ** 8
+        self.__check_flag_zero(self.y)
+        self.__check_flag_negative(self.y)
+
+    def _eor_imm(self):
+        value = self.__read_word()
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_zp(self):
+        address = self.__read_word()
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_zpx(self):
+        address = self.__read_word() + self.x
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_abs(self):
+        address = self.__read_double()
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_absx(self):
+        address = self.__read_double() + self.x
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_absy(self):
+        address = self.__read_double() + self.y
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_indx(self):
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _eor_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        value = self.memory[address]
+        self.a = self.a ^ value
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def _inc_abs(self):
         address = self.__read_double()
@@ -613,10 +972,9 @@ class CPU(object):
         self.__check_flag_negative(self.y)
         return address
 
-
     def _lsr_abs(self):
-        self.status |= (self.__read_word() & 0b0000001)
-        self.a = (self.__read_word()>>1) & 0b01111111
+        self.status |= self.__read_word() & 0b0000001
+        self.a = (self.__read_word() >> 1) & 0b01111111
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
@@ -625,32 +983,32 @@ class CPU(object):
         self.status |= (self.__read_double + self.x) & 0b0000001
         self.a = ((self.__read_double + self.x) >> 1) & 0b01111111
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _lsr_acc(self):
         # set carry flag
-        self.status |= (self.a & 0b0000001)
+        self.status |= self.a & 0b0000001
         # shift left
         self.a = (self.a >> 1) & 0b01111111
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
-
     def _lsr_zp(self):
-
 
         address = self.__read_word()
         aux = self.memory[address]
 
         # set carry flag
-        self.status |= (aux & 0b0000001)
+        self.status |= aux & 0b0000001
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -658,15 +1016,16 @@ class CPU(object):
 
     def _lsr_zpx(self):
         address = self.__read_word()
-        aux = ((self.memory[address] + self.x))
+        aux = self.memory[address] + self.x
         # set carry flag
-        self.status |= (aux & 0b0000001)
+        self.status |= aux & 0b0000001
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -674,6 +1033,18 @@ class CPU(object):
 
     def _nop(self):
         pass
+
+    def _ora_imm(self):
+        value = self.__read_word()
+        self.a = self.a | value
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ora_zp(self):
+        value = self.memory[self.__read_word()]
+        self.a = self.a | value
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
 
     def _pha(self):
         self.__stack_push(self.a)
@@ -707,7 +1078,6 @@ class CPU(object):
         self.status |= 0b00001000
 
     def _sei(self):
-        # TODO: write tests
         self.status |= 0b00000100
 
     def _sta_abs(self):
@@ -837,16 +1207,16 @@ class CPU(object):
 
     def __check_flag_carry(self, value):
         # FIXME: it's doing same check from negative flag
-        if value & 0b10000000:
+        # CONFIRM
+        # print("value", value)
+        if value > 255 or value < 0:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110
 
-    def __check_flag_overflow(self, value, value_before):
-        mask = 0b10000000
-        overflow = value & mask
-        overflow_before = value_before & mask
-        if overflow_before != overflow:
+    def __check_flag_overflow(self, value):
+        # print("valueoverflow", value)
+        if value < -128 or value > 127:
             self.status |= 0b01000000
         else:
             self.status &= 0b10111111
@@ -913,6 +1283,182 @@ class CPU(object):
         self.memory[address] = aux
 
         # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+#ORA******#
+
+    
+
+
+    def _ora_zp(self):
+        value = self.memory[self.__read_word()]
+        self.a = value | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_zpx(self):
+        value = self.__read_word() + self.x
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_abs(self):
+        value = self.__read_double()
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_absx(self):
+        value = self.__read_double() + self.x
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_absy(self):
+        value = self.__read_double() + self.y
+        self.a = self.memory[value] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_indx(self):
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        self.a = self.memory[address] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _ora_indy(self):
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        self.a = self.memory[address] | self.a
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+        
+    
+        #ROL******************************#
+    def _rol_abs(self):
+        self.status |= (self.__read_word() & 0b1000000)
+        self.a = (self.__read_word()<<1) & 0b01111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _rol_absx(self):
+        self.status |= (self.__read_double + self.x) & 0b1000000
+        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _rol_acc(self):
+        # set carry flag
+        self.status |= (self.a & 0b1000000)
+        # shift left
+        self.a = (self.a << 1) & 0b01111111
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+
+    def _rol_zp(self):
+
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _rol_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+
+#******ror*******#
+    def _ror_abs(self):
+        self.status |= (self.__read_word() & 0b1000000)
+        self.a = (self.__read_word()<<1) & 0b01111111
+
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ror_absx(self):
+        self.status |= (self.__read_double + self.x) & 0b1000000
+        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+    def _ror_acc(self):
+        # set carry flag
+        self.status |= (self.a & 0b1000000)
+        # shift left
+        self.a = (self.a << 1) & 0b01111111
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+
+    def _ror_zp(self):
+
+
+        address = self.__read_word()
+        aux = self.memory[address]
+
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_negative(self.a)
+        self.__check_flag_zero(self.a)
+
+        return address
+
+    def _ror_zpx(self):
+        address = self.__read_word()
+        aux = ((self.memory[address] + self.x))
+        # set carry flag
+        self.status |= (aux & 0b1000000)
+        # shift left
+        self.a = (aux << 1) & 0b01111111
+
+        self.memory[address] = aux
+
+        # tem que adicionar o overflow
+        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
