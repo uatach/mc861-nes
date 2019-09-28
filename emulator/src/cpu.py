@@ -1051,18 +1051,20 @@ class CPU(object):
         self.__check_flag_zero(self.a)
 
     def _pha(self):
-        self.__stack_push(self.a)
+        return self.__stack_push(self.a)
 
     def _php(self):
-        self.__stack_push(self.status)
+        return self.__stack_push(self.status)
 
     def _pla(self):
-        self.a = self.__stack_pull()
+        address, self.a = self.__stack_pull()
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
+        return address
 
     def _plp(self):
-        self.status = self.__stack_pull()
+        address, self.status = self.__stack_pull()
+        return address
 
     def _rol_acc(self):
         carry = self.status & 0b00000001
@@ -1347,15 +1349,16 @@ class CPU(object):
 
 
     def __stack_push(self, value):
-        self.memory[self.sp] = value
+        address = self.sp
+        self.memory[address] = value
         self.sp -= 1
+        return address
 
     def __stack_pull(self):
         self.sp += 1
-        value = self.memory[self.sp]
-        return value
-
-
+        address = self.sp
+        value = self.memory[address]
+        return address, value
 
 
 
