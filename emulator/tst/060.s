@@ -34,7 +34,7 @@ RESET:
   LDX #$FF
   TXS
   JSR foo
-  SEC
+  NOP
   BRK ; Abort execution
 
 NMI:

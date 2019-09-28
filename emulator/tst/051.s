@@ -31,18 +31,27 @@ RESET:
   LDX #$FF
   TXS
 
+  LDA #$00
+  PHA
+  PLP
+
   LDA #$42
+  STA $00
   PHP
   PHP
   LDA #$00
   PLP
   PLP
 
-  LDA #$80
+  LDA #$00
+  PHA
+  PLP
+
   SEC
   SED
   SEI
-  ; TODO: set overflow
+  BIT $00
+  LDA #$80
   PHP
   LDA #$00
   CLC
