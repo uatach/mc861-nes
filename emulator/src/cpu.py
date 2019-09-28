@@ -1221,15 +1221,11 @@ class CPU(object):
         return address
 
     def _rti(self):
-        self.status = self.__stack_pull()
-        value = self.__stack_pull()
-        value += self.__stack_pull() << 8
-        self.pc = value
+        _, self.status = self.__stack_pull()
+        self.__stack_pull_pc()
 
     def _rts(self):
-        value = self.__stack_pull()
-        value += self.__stack_pull() << 8
-        self.pc = value
+        self.__stack_pull_pc()
 
     def _sbc_abs(self):
         carry = self.status & 0b00000001
@@ -1507,3 +1503,8 @@ class CPU(object):
         address = self.sp
         value = self.memory[address]
         return address, value
+
+    def __stack_pull_pc(self):
+        _, low = self.__stack_pull()
+        _, high = self.__stack_pull()
+        self.pc = (high << 8) + low
