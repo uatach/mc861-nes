@@ -64,7 +64,7 @@ class CPU(object):
             # 0x26: self._rol_zp,
             0x28: self._plp,
             0x29: self._and_imm,
-            # 0x2A: self._rol_acc,
+            0x2A: self._rol_acc,
             0x2C: self._bit_abs,
             0x2D: self._and_abs,
             # 0x2E: self._rol_abs,
@@ -173,23 +173,23 @@ class CPU(object):
             0xDD: self._cmp_absx,
             0xDE: self._dec_absx,
             0xE0: self._cpx_imm,
-            # 0xE1: self._sbc_indx,
+            0xE1: self._sbc_indx,
             0xE4: self._cpx_zp,
-            # 0xE5: self._sbc_zp,
+            0xE5: self._sbc_zp,
             0xE6: self._inc_zp,
             0xE8: self._inx,
-            # 0xE9: self._sbc_imm,
+            0xE9: self._sbc_imm,
             0xEA: self._nop,
             0xEC: self._cpx_abs,
-            # 0xED: self._sbc_abs,
+            0xED: self._sbc_abs,
             0xEE: self._inc_abs,
             0xF0: self._beq,
-            # 0xF1: self._sbc_indy,
-            # 0xF5: self._sbc_zpx,
+            0xF1: self._sbc_indy,
+            0xF5: self._sbc_zpx,
             0xF6: self._inc_zpx,
             0xF8: self._sed,
-            # 0xF9: self._sbc_absy,
-            # 0xFD: self._sbc_absx,
+            0xF9: self._sbc_absy,
+            0xFD: self._sbc_absx,
             0xFE: self._inc_absx,
         }
         log.info("Handling %d opcodes", len(self.opcodes))
@@ -223,22 +223,18 @@ class CPU(object):
 
     # instructions
     def two_complements(self, value):
-        # print("two", value)
+        print("two", value)
         if (value & (1 << 7)) != 0:
             value = value - (1 << 8)
-            # print("two -", value)
+            print("two -", value)
         return value
 
     def _adc_abs(self):
         carry = self.status & 0b00000001
         address = self.__read_double()
         value = self.memory[address]
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value1 = self.memory[address]
-        value1 = self.two_complements(value1)
-        self.a = self.two_complements(self.a)
-        self.a = value1 + self.a + carry
+        self.a = value + self.a + carry
+        self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
@@ -260,12 +256,11 @@ class CPU(object):
     def _adc_imm(self):
         carry = self.status & 0b00000001
         value = self.__read_word()
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        before = self.a
         self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
+        self.__check_flag_carry(self.a)
+        self.a %= 0x100
+        self.__check_flag_overflow_two(self.a, before, value)
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -1060,6 +1055,14 @@ class CPU(object):
     def _plp(self):
         self.status = self.__stack_pull()
 
+    def _rol_acc(self):
+        carry = self.status & 0b00000001
+        new_carry = (self.a & 0b10000000) >> 7
+        self.status = new_carry | self.status
+        self.a = (self.a << 1) + carry
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
     def _rti(self):
         self.status = self.__stack_pull()
         value = self.__stack_pull()
@@ -1070,6 +1073,114 @@ class CPU(object):
         value = self.__stack_pull()
         value += self.__stack_pull() << 8
         self.pc = value
+
+    def _sbc_abs(self):
+        carry = self.status & 0b00000001
+        address = self.__read_double()
+        value = self.memory[address]
+        aux = self.a - value  - (1 - carry)
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value1  - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_absx(self):
+        carry = self.status & 0b00000001
+        address = self.__read_double() + self.x
+        value = self.memory[address]
+        aux =  self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value1 = self.memory[address]
+        value1 = self.two_complements(value1)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value1 - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_imm(self): #A + compl1(m) - carry
+        carry = self.status & 0b00000001
+        value = self.__read_word()
+        aux = self.a - value - (1 - carry)
+        print(bin(0xff - aux))
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_zp(self):
+        carry = self.status & 0b00000001
+        value = self.memory[self.__read_word()]
+        aux = self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_zpx(self):
+        carry = self.status & 0b00000001
+        address = self.__read_word() + self.x
+        value = self.memory[address]
+        aux = self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_absy(self):
+        carry = self.status & 0b00000001
+        address = self.__read_double() + self.y
+        value = self.memory[address]
+        aux = self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_indx(self):
+        carry = self.status & 0b00000001
+        value = self.__read_word() + self.x
+        address = (self.memory[value + 1] << 8) + self.memory[value]
+        value = self.memory[address]
+        aux = self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
+
+    def _sbc_indy(self):
+        value + self.a + carry
+        carry = self.status & 0b00000001
+        value = self.__read_word()
+        address = (self.memory[value + 1] << 8) + self.memory[value] + self.y
+        value = self.memory[address]
+        aux = self.a - value - (1 - carry)
+        self.__check_flag_carry(aux)
+        value = self.two_complements(value)
+        self.a = self.two_complements(self.a)
+        self.a = self.a - value - (1 - carry)
+        self.__check_flag_overflow(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def _sec(self):
         self.status |= 0b00000001
@@ -1214,12 +1325,17 @@ class CPU(object):
         else:
             self.status &= 0b11111110
 
-    def __check_flag_overflow(self, value):
-        # print("valueoverflow", value)
-        if value < -128 or value > 127:
+    def __check_flag_overflow_two(self, value, parc1, parc2):
+        mask = 0b10000000
+        overflow_res = value & mask
+        overflow_parc1 = parc1 & mask
+        overflow_parc2 = parc2 & mask
+        print("overflow", overflow_res)
+        if((overflow_parc1 == overflow_parc2) and (overflow_parc1 != overflow_res)):
             self.status |= 0b01000000
         else:
             self.status &= 0b10111111
+
 
     def __stack_push(self, value):
         self.memory[self.sp] = value
@@ -1291,7 +1407,7 @@ class CPU(object):
 
 #ORA******#
 
-    
+
 
 
     def _ora_zp(self):
@@ -1337,8 +1453,8 @@ class CPU(object):
         self.a = self.memory[address] | self.a
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
-        
-    
+
+
         #ROL******************************#
     def _rol_abs(self):
         self.status |= (self.__read_word() & 0b1000000)
