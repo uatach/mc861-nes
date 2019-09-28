@@ -515,6 +515,7 @@ class CPU(object):
             self.pc += value
 
     def _brk(self):
+        # NOTE: https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
         self.__stack_push(self.status | 0b00110000)
         self.__flag_interrupt_set()
         # TODO: needs better way to signal interruption
@@ -1092,6 +1093,7 @@ class CPU(object):
         return self.__stack_push(self.a)
 
     def _php(self):
+        # NOTE: https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
         return self.__stack_push(self.status | 0b00110000)
 
     def _pla(self):
