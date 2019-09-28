@@ -41,41 +41,41 @@ class CPU(object):
 
         self.opcodes = {
             0x00: self._brk,
-            # 0x01: self._ora_indx,
+            0x01: self._ora_indx,
             0x05: self._ora_zp,
             0x06: self._asl_zp,
             0x08: self._php,
             0x09: self._ora_imm,
             0x0A: self._asl_acc,
-            # 0x0D: self._ora_abs,
+            0x0D: self._ora_abs,
             0x0E: self._asl_abs,
             0x10: self._bpl,
-            # 0x11: self._ora_indy,
-            # 0x15: self._ora_zpx,
+            0x11: self._ora_indy,
+            0x15: self._ora_zpx,
             0x16: self._asl_zpx,
             0x18: self._clc,
-            # 0x19: self._ora_absy,
-            # 0x1D: self._ora_absx,
+            0x19: self._ora_absy,
+            0x1D: self._ora_absx,
             0x1E: self._asl_absx,
             0x20: self._jsr,
             0x21: self._and_indx,
             0x24: self._bit_zp,
             0x25: self._and_zp,
-            # 0x26: self._rol_zp,
+            0x26: self._rol_zp,
             0x28: self._plp,
             0x29: self._and_imm,
-            # 0x2A: self._rol_acc,
+            0x2A: self._rol_acc,
             0x2C: self._bit_abs,
             0x2D: self._and_abs,
-            # 0x2E: self._rol_abs,
+            0x2E: self._rol_abs,
             0x30: self._bmi,
             0x31: self._and_indy,
             0x35: self._and_zpx,
-            # 0x36: self._rol_zpx,
+            0x36: self._rol_zpx,
             0x38: self._sec,
             0x39: self._and_absy,
             0x3D: self._and_absx,
-            # 0x3E: self._rol_absx,
+            0x3E: self._rol_absx,
             0x40: self._rti,
             0x41: self._eor_indx,
             0x45: self._eor_zp,
@@ -97,17 +97,17 @@ class CPU(object):
             0x60: self._rts,
             0x61: self._adc_indx,
             0x65: self._adc_zp,
-            # 0x66: self._ror_zp,
+            0x66: self._ror_zp,
             0x68: self._pla,
             0x69: self._adc_imm,
-            # 0x6A: self._ror_acc,
+            0x6A: self._ror_acc,
             0x6C: self._jmp_ind,
             0x6D: self._adc_abs,
-            # 0x6E: self._ror_abs,
+            0x6E: self._ror_abs,
             0x70: self._bvs,
             0x71: self._adc_indy,
             0x75: self._adc_zpx,
-            # 0x76: self._ror_zpx,
+            0x76: self._ror_zpx,
             0x78: self._sei,
             0x79: self._adc_absy,
             0x7D: self._adc_absx,
@@ -1341,25 +1341,31 @@ class CPU(object):
     
         #ROL******************************#
     def _rol_abs(self):
-        self.status |= (self.__read_word() & 0b1000000)
-        self.a = (self.__read_word()<<1) & 0b01111111
+        carry = (self.__read_word() & 0b10000000)>>7
+        self.a =( (self.__read_word()<<1)  & 0b11111110 )+ (self.status & 0b00000001)
+        self.status |= carry
+        
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _rol_absx(self):
-        self.status |= (self.__read_double + self.x) & 0b1000000
-        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
+        carry =  ((self.__read_double + self.x) & 0b10000000)>>7
+        self.a = (((self.__read_double + self.x) << 1) & 0b11111110  )+ (self.status & 0b00000001)
+        self.status |= carry
+
+
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _rol_acc(self):
-        # set carry flag
-        self.status |= (self.a & 0b1000000)
-        # shift left
-        self.a = (self.a << 1) & 0b01111111
+        
+
+        carry = (self.a & 0b10000000)>>7
+        
+        self.a = (((self.a << 1) & 0b11111110))  + (self.status & 0b00000001)
+        self.status |= (carry & 0b00000001) 
+         
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -1370,15 +1376,10 @@ class CPU(object):
         address = self.__read_word()
         aux = self.memory[address]
 
-        # set carry flag
-        self.status |= (aux & 0b1000000)
-        # shift left
-        self.a = (aux << 1) & 0b01111111
-
-        self.memory[address] = aux
-
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
+        carry = (aux & 0b10000000)>>7
+        self.a = ((aux << 1) & 0b11111110  )+ (self.status & 0b00000001)
+        self.status |= carry
+        
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -1387,15 +1388,12 @@ class CPU(object):
     def _rol_zpx(self):
         address = self.__read_word()
         aux = ((self.memory[address] + self.x))
-        # set carry flag
-        self.status |= (aux & 0b1000000)
-        # shift left
-        self.a = (aux << 1) & 0b01111111
-
+        carry = (aux & 0b10000000)>>7
+        self.a = ((aux << 1) & 0b11111110 )+ (self.status & 0b00000001)
+        self.status |= carry
+    
         self.memory[address] = aux
 
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -1403,62 +1401,51 @@ class CPU(object):
 
 
 #******ror*******#
+   #******ror*******#
     def _ror_abs(self):
+        aux = self.a & 0b0000001
         self.status |= (self.__read_word() & 0b1000000)
-        self.a = (self.__read_word()<<1) & 0b01111111
-
+        self.a = (self.__read_word()>>1) & 0b01111111+ self.status * 2**7
+        self.status |= aux
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _ror_absx(self):
-        self.status |= (self.__read_double + self.x) & 0b1000000
-        self.a = ((self.__read_double + self.x) << 1) & 0b01111111
-        # tem que adicionar o overflow
+        aux = self.a & 0b0000001
+        self.a = ((self.__read_double + self.x) >> 1) & 0b01111111+ self.status * 2**7
+        self.status |= aux
         self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
     def _ror_acc(self):
-        # set carry flag
-        self.status |= (self.a & 0b1000000)
-        # shift left
-        self.a = (self.a << 1) & 0b01111111
+        aux = self.a & 0b0000001
+        self.a = (self.a >> 1) & 0b01111111 + self.status * 2**7
+        self.status |= aux
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
 
     def _ror_zp(self):
-
-
+        aux2 = self.a & 0b0000001
         address = self.__read_word()
         aux = self.memory[address]
-
-        # set carry flag
-        self.status |= (aux & 0b1000000)
-        # shift left
-        self.a = (aux << 1) & 0b01111111
-
+        self.a = (aux >> 1) & 0b01111111+ self.status *     2**7
+        self.status |= aux2
         self.memory[address] = aux
-
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
         return address
-
     def _ror_zpx(self):
+        aux2 = self.a & 0b0000001
         address = self.__read_word()
         aux = ((self.memory[address] + self.x))
-        # set carry flag
         self.status |= (aux & 0b1000000)
-        # shift left
-        self.a = (aux << 1) & 0b01111111
-
+        self.a = (aux >> 1) & 0b01111111+ self.status * 2**7
+        self.status |= aux2
         self.memory[address] = aux
 
-        # tem que adicionar o overflow
-        self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
