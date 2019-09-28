@@ -203,13 +203,22 @@ class CPU(object):
         end = start + size
         self.memory[start:end] = rom
 
+        # TODO: move mirroring stuff to data bus related class
         # setup mirroring
         if size < 0x8000:
             start = end
             end = start + size
             self.memory[start:end] = rom
 
-        # setting pc to the reset handler
+        # setting inital state as seen at the docs at:
+        #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
+        self.status = 0x34
+        self.a, self.x, self.y = 0, 0, 0
+        self.sp = 0xfd
+
+        # FIXME: maybe move code related to ram state here
+
+        # setting pc to RESET handler at 0xFFFC
         self.pc = (self.memory[0xFFFD] << 8) + self.memory[0xFFFC]
 
     def step(self):
