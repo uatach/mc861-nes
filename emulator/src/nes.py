@@ -18,6 +18,8 @@ def load(data):
 @attr.s
 class NES(object):
     cpu = attr.ib()
+    ppu = attr.ib()
+    bus = attr.ib()
 
     def run(self, data):
         log.info("Running...")

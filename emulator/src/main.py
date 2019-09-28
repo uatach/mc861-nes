@@ -1,6 +1,7 @@
 import click
 import logging
 
+from .bus import BUS
 from .cpu import CPU
 from .nes import NES
 
@@ -24,7 +25,9 @@ def cli(filename, verbose):
     # TODO: share memory with the ppu
     memory = 2 ** 16 * [0]
 
+    bus = BUS()
+    ppu = None
     cpu = CPU(memory)
-    nes = NES(cpu)
+    nes = NES(cpu, ppu, bus)
 
     nes.run(data)
