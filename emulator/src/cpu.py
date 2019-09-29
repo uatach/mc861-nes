@@ -197,7 +197,7 @@ class CPU(object):
 
         # RAM mirroring
         self.bus.mirror(
-            (0x0000, 0x07FF), [(0x0800, 0x0FFF), (0x1000, 0x17FF), (0x1800, 0x1FFF)]
+            (0x0000, 0x0800), [(0x0800, 0x1000), (0x1000, 0x1800), (0x1800, 0x2000)]
         )
 
         size = len(rom)
@@ -210,15 +210,15 @@ class CPU(object):
 
         # ROM mirroring
         if size < 0x8000:
-            self.bus.mirror(rom_range, [(end, start + size)])
+            self.bus.mirror(rom_range, [(end, end + size)])
 
         # PPU mirroring
         start = 0x2008
         mirrors = []
-        for end in range(0x200F, 0x4000, 8):
+        for end in range(0x2010, 0x4001, 8):
             mirrors.append((start, end))
-            start = end + 1
-        self.bus.mirror((0x2000, 0x2007), mirrors)
+            start = end
+        self.bus.mirror((0x2000, 0x2008), mirrors)
 
         # setting inital state as seen at the docs at:
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
