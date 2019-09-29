@@ -26,6 +26,7 @@ class BUS(object):
             address = self.mirrors.get(addr_range, addr_range)
             self.memory[address] = data
             log.debug("memory size: %s", hex(len(self.memory)))
+            return address
 
     def read(self, addr):
         address = self.mirrors.get(addr, addr)

@@ -206,7 +206,7 @@ class CPU(object):
         rom_range = start, end
 
         # copy rom data to memory
-        self.bus.write(rom_range, rom)
+        address = self.bus.write(rom_range, rom)
 
         # ROM mirroring
         if size < 0x8000:
@@ -432,7 +432,7 @@ class CPU(object):
         self.status |= ((aux) & 0b10000000) >> 7
         # shift left
         self.a = (aux << 1) & 0b11111111
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
@@ -447,7 +447,7 @@ class CPU(object):
         # shift left
         self.a = (aux << 1) & 0b11111111
 
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         self.__check_flag_overflow(self.a)
         self.__check_flag_negative(self.a)
@@ -716,7 +716,7 @@ class CPU(object):
     def _dec_abs(self):
         address = self.__read_double()
         value = (self.bus.read(address) - 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -724,7 +724,7 @@ class CPU(object):
     def _dec_absx(self):
         address = self.__read_double() + self.x
         value = (self.bus.read(address) - 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -732,7 +732,7 @@ class CPU(object):
     def _dec_zp(self):
         address = self.__read_word()
         value = (self.bus.read(address) - 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -740,7 +740,7 @@ class CPU(object):
     def _dec_zpx(self):
         address = self.__read_word() + self.x
         value = (self.bus.read(address) - 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -815,7 +815,7 @@ class CPU(object):
     def _inc_abs(self):
         address = self.__read_double()
         value = (self.bus.read(address) + 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -823,7 +823,7 @@ class CPU(object):
     def _inc_absx(self):
         address = self.__read_double() + self.x
         value = (self.bus.read(address) + 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -831,7 +831,7 @@ class CPU(object):
     def _inc_zp(self):
         address = self.__read_word()
         value = (self.bus.read(address) + 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -839,7 +839,7 @@ class CPU(object):
     def _inc_zpx(self):
         address = self.__read_word() + self.x
         value = (self.bus.read(address) + 1) % 2 ** 8
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
@@ -1025,7 +1025,7 @@ class CPU(object):
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         # tem que adicionar o overflow
         self.__check_flag_overflow(self.a)
@@ -1042,7 +1042,7 @@ class CPU(object):
         # shift left
         self.a = (aux >> 1) & 0b01111111
 
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         # tem que adicionar o overflow
         self.__check_flag_overflow(self.a)
@@ -1178,7 +1178,7 @@ class CPU(object):
         self.a = ((aux << 1) & 0b11111110) + (self.status & 0b00000001)
         self.status |= carry
 
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
@@ -1216,7 +1216,7 @@ class CPU(object):
         aux = self.bus.read(address)
         self.a = (aux >> 1) & 0b01111111 + self.status * 2 ** 7
         self.status |= aux2
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
 
@@ -1229,7 +1229,7 @@ class CPU(object):
         self.status |= aux & 0b1000000
         self.a = (aux >> 1) & 0b01111111 + self.status * 2 ** 7
         self.status |= aux2
-        self.bus.write(address, aux)
+        address = self.bus.write(address, aux)
 
         self.__check_flag_negative(self.a)
         self.__check_flag_zero(self.a)
@@ -1363,69 +1363,69 @@ class CPU(object):
 
     def _sta_abs(self):
         address = self.__read_double()
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_absx(self):
         address = self.__read_double() + self.x
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_absy(self):
         address = self.__read_double() + self.y
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_indx(self):
         value = self.__read_word()
         address = self.bus.read(value) + self.x
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_indy(self):
         value = self.__read_word()
         address = self.bus.read_double(value) + self.y
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_zp(self):
         address = self.__read_word()
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _sta_zpx(self):
         address = self.__read_word() + self.x
-        self.bus.write(address, self.a)
+        address = self.bus.write(address, self.a)
         return address
 
     def _stx_abs(self):
         address = self.__read_double()
-        self.bus.write(address, self.x)
+        address = self.bus.write(address, self.x)
         return address
 
     def _stx_zp(self):
         address = self.__read_word()
-        self.bus.write(address, self.x)
+        address = self.bus.write(address, self.x)
         return address
 
     def _stx_zpy(self):
         address = self.__read_word() + self.y
-        self.bus.write(address, self.x)
+        address = self.bus.write(address, self.x)
         return address
 
     def _sty_abs(self):
         address = self.__read_double()
-        self.bus.write(address, self.y)
+        address = self.bus.write(address, self.y)
         return address
 
     def _sty_zp(self):
         address = self.__read_word()
-        self.bus.write(address, self.y)
+        address = self.bus.write(address, self.y)
         return address
 
     def _sty_zpx(self):
         address = self.__read_word() + self.x
-        self.bus.write(address, self.y)
+        address = self.bus.write(address, self.y)
         return address
 
     def _tax(self):
@@ -1511,7 +1511,7 @@ class CPU(object):
 
     def __stack_push(self, value):
         address = self.sp
-        self.bus.write(address, value)
+        address = self.bus.write(address, value)
         self.sp -= 1
         return address
 
