@@ -195,24 +195,37 @@ class CPU(object):
     def setup(self, bus, rom):
         self.bus = bus
 
-        # copy rom data to memory
+        # RAM mirroring
+        self.bus.mirror(
+            (0x0000, 0x07FF), [(0x0800, 0x0FFF), (0x1000, 0x17FF), (0x1800, 0x1FFF)]
+        )
+
         size = len(rom)
         start = 0x8000
         end = start + size
-        rom_slice = slice(start, end)
-        self.bus.write(rom_slice, rom)
+        rom_range = start, end
 
-        # setup mirroring
+        # copy rom data to memory
+        self.bus.write(rom_range, rom)
+
+        # ROM mirroring
         if size < 0x8000:
-            self.bus.mirror(rom_slice, [slice(end, start + size)])
+            self.bus.mirror(rom_range, [(end, start + size)])
+
+        # PPU mirroring
+        start = 0x2008
+        mirrors = []
+        for end in range(0x200F, 0x4000, 8):
+            mirrors.append((start, end))
+            start = end + 1
+        self.bus.mirror((0x2000, 0x2007), mirrors)
 
         # setting inital state as seen at the docs at:
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
         self.status = 0x34
         self.a, self.x, self.y = 0, 0, 0
         self.sp = 0xFD
-
-        # FIXME: maybe move code related to ram state here
+        self.bus.write((0x0000, 0x07FF), 0x07FF * [0])
 
         # setting pc to RESET handler at 0xFFFC
         self.pc = self.bus.read_double(0xFFFC)
