@@ -7,20 +7,30 @@ log = logging.getLogger(__name__)
 @attr.s
 class BUS(object):
     def __attrs_post_init__(self):
-        self.memory = 2 ** 16 * [0]
+        self.memory = {}
+        self.mirrors = {}
 
     def mirror(self, addr_range, mirrors):
         for m in mirrors:
-            self.memory[slice(*m)] = self.memory[slice(*addr_range)]
+            for target, origin in zip(range(*m), range(*addr_range)):
+                self.mirrors[target] = origin
+        log.debug("total mirrors: %s", hex(len(self.mirrors)))
 
     def write(self, addr_range, data):
         if isinstance(addr_range, tuple):
-            self.memory[slice(*addr_range)] = data
+            for addr, value in zip(range(*addr_range), data):
+                address = self.mirrors.get(addr, addr)
+                self.memory[address] = value
+            log.debug("memory size: %s", hex(len(self.memory)))
         else:
-            self.memory[addr_range] = data
+            address = self.mirrors.get(addr_range, addr_range)
+            self.memory[address] = data
+            log.debug("memory size: %s", hex(len(self.memory)))
 
     def read(self, addr):
-        return self.memory[addr]
+        address = self.mirrors.get(addr, addr)
+        return self.memory[address]
 
     def read_double(self, addr):
-        return (self.read(addr + 1) << 8) + self.read(addr)
+        address = self.mirrors.get(addr, addr)
+        return (self.memory[address + 1] << 8) + self.memory[address]
