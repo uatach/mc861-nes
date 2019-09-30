@@ -27,21 +27,41 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
   .base $10000-(PRG_COUNT*$4000)
 
-foo:
-  RTS
+l1:
+  NOP
+  JMP l2
 
 RESET:
-  LDX #$FF
-  TXS
-  JSR foo
+  JMP l1
+
+l0:
+  LDA #<label
+  STA $00
+  LDA #>label
+  STA $01
+  JMP ($0000)
+
+l3:
   NOP
-  BRK ; Abort execution
+  JMP l4
 
 NMI:
   ;NOTE: NMI code goes here
 
+l2:
+  NOP
+  JMP l3
+
 IRQ:
   ;NOTE: IRQ code goes here
+
+l4:
+  NOP
+  JMP l0
+
+label:
+  NOP
+  BRK ; Abort execution
 
 ;----------------------------------------------------------------
 ; interrupt vectors

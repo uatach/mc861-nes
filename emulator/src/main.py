@@ -1,6 +1,7 @@
 import click
 import logging
 
+from .bus import BUS
 from .cpu import CPU
 from .nes import NES
 
@@ -21,10 +22,9 @@ def cli(filename, verbose):
     log.debug("Loading cartridge")
     data = filename.read()
 
-    # TODO: share memory with the ppu
-    memory = 2 ** 16 * [0]
-
-    cpu = CPU(memory)
-    nes = NES(cpu)
+    bus = BUS()
+    ppu = None
+    cpu = CPU()
+    nes = NES(cpu, ppu, bus)
 
     nes.run(data)

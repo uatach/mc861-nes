@@ -27,14 +27,16 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
   .base $10000-(PRG_COUNT*$4000)
 
-foo:
-  RTS
-
 RESET:
-  LDX #$FF
-  TXS
-  JSR foo
-  NOP
+  LDA #$42
+  STA $0000
+  STA $07FF
+  STA $0801
+  STA $0FFE
+  STA $1002
+  STA $17FD
+  STA $1803
+  STA $1FFC
   BRK ; Abort execution
 
 NMI:

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-emulator/ext/asm6/asm6 emulator/tst/$1.s emulator/bin/$1
+name=$(basename -- "$1")
+out=$(emulator/ext/asm6/asm6 emulator/tst/$name.s emulator/bin/$name)
 
-result=$(pynesemu -vv emulator/bin/$1)
-expected=$(cat emulator/res/$1.r)
-
-diff -y --suppress-common-lines <(echo "$result") <(echo "$expected")
+result=$(pynesemu -vv emulator/bin/$name)
+expected=$(cat emulator/res/$name.r)
+diff --suppress-common-lines <(echo "$result") <(echo "$expected") 2>&1

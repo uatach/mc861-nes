@@ -18,6 +18,8 @@ def load(data):
 @attr.s
 class NES(object):
     cpu = attr.ib()
+    ppu = attr.ib()
+    bus = attr.ib()
 
     def run(self, data):
         log.info("Running...")
@@ -28,11 +30,12 @@ class NES(object):
         log.debug("PRG size: %d", len(prg_rom))
         log.debug("CHR size: %d", len(chr_rom))
 
-        self.cpu.setup(prg_rom)
+        self.cpu.setup(self.bus, prg_rom)
 
         while True:
             try:
                 self.cpu.step()
             except Exception as e:
-                log.error(e)
+                if str(e) != "brk":
+                    log.error(e)
                 break

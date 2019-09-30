@@ -27,15 +27,56 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
   .base $10000-(PRG_COUNT*$4000)
 
-foo:
-  RTS
-
 RESET:
-  LDX #$FF
-  TXS
-  JSR foo
-  NOP
+  JMP test
+test:
+ CLC
+  ADC #$8   ;pair without
+ 
+  LSR
+  LSR
+  LSR
+  LSR
+  CLC
+  ADC #$8
+  ASL
+  ASL
+  ASL
+  ASL
+  ASL
+  ASL
+  ASL
+  ASL
+
+  ADC #$8
+  ROR
+  ROR
+  ROR
+  ROR
+  ROR
+  ROR
+  ROR
+  ROR
+  ROR
+  ADC #$8
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  ROL
+  
+
+
+
+ 
+
   BRK ; Abort execution
+
 
 NMI:
   ;NOTE: NMI code goes here

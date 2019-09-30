@@ -42,6 +42,11 @@ RESET:
   INC $10,X
   INC $0200
   INC $0400,X
+
+  DEC $00
+  DEC $10,X
+  DEC $0200
+  DEC $0400,X
   BRK ; Abort execution
 
 NMI:
