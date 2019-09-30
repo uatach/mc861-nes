@@ -262,11 +262,20 @@ class CPU(object):
         addr = self.__read_double()
         return addr, self.bus.read(addr)
 
+    def read_absx(self):
+        addr = self.__read_double() + self.x
+        return addr, self.bus.read(addr)
+
     def read_imm(self):
         return self.__read_word()
 
     def write_abs(self, value):
         addr = self.__read_double()
+        self.bus.write(addr, value)
+        return addr
+
+    def write_absx(self, value):
+        addr = self.__read_double() + self.x
         self.bus.write(addr, value)
         return addr
 
@@ -280,9 +289,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _adc_absx(self):
+        address, value = self.read_absx()
         carry = self.status & 0b00000001
-        address = self.__read_double() + self.x
-        value = self.bus.read(address)
         aux = value + self.a + carry
         self.__check_flag_carry(aux)
         value1 = self.bus.read(address)
@@ -386,8 +394,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _and_absx(self):
-        value = self.__read_double() + self.x
-        self.a = self.bus.read(value) & self.a
+        address, value = self.read_absx()
+        self.a &= value
         self.check_flags_nz(self.a)
 
     def _and_absy(self):
@@ -414,6 +422,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _asl_absx(self):
+        # FIXME: _absx without __read_double
         self.status |= ((self.__read_double + self.x) & 0b10000000) >> 7
         self.a = ((self.__read_double + self.x) << 1) & 0b11111111
         self.check_flags_nz(self.a)
@@ -585,8 +594,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cmp_absx(self):
-        address = self.__read_double() + self.x
-        value = self.bus.read(address)
+        address, value = self.read_absx()
         aux = self.a - value
         if self.a > value:
             self.status |= 0b00000001
@@ -690,8 +698,8 @@ class CPU(object):
         return address
 
     def _dec_absx(self):
-        address = self.__read_double() + self.x
-        value = dec(self.bus.read(address))
+        address, value = self.read_absx()
+        value = dec(value)
         address = self.bus.write(address, value)
         self.check_flags_nz(value)
         return address
@@ -741,8 +749,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _eor_absx(self):
-        address = self.__read_double() + self.x
-        value = self.bus.read(address)
+        address, value = self.read_absx()
         self.a = self.a ^ value
         self.check_flags_nz(self.a)
 
@@ -774,8 +781,8 @@ class CPU(object):
         return address
 
     def _inc_absx(self):
-        address = self.__read_double() + self.x
-        value = inc(self.bus.read(address))
+        address, value = self.read_absx()
+        value = inc(value)
         address = self.bus.write(address, value)
         self.check_flags_nz(value)
         return address
@@ -823,8 +830,7 @@ class CPU(object):
         return address
 
     def _lda_absx(self):
-        address = self.__read_double() + self.x
-        self.a = self.bus.read(address)
+        address, self.a = self.read_absx()
         self.check_flags_nz(self.a)
         return address
 
@@ -898,8 +904,7 @@ class CPU(object):
         return address
 
     def _ldy_absx(self):
-        address = self.__read_double() + self.x
-        self.y = self.bus.read(address)
+        address, self.y = self.read_absx()
         self.check_flags_nz(self.y)
         return address
 
@@ -926,6 +931,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _lsr_absx(self):
+        # FIXME: _absx without __read_double
         self.status |= (self.__read_double + self.x) & 0b0000001
         self.a = ((self.__read_double + self.x) >> 1) & 0b01111111
         self.__check_flag_overflow(self.a)
@@ -965,8 +971,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _ora_absx(self):
-        value = self.__read_double() + self.x
-        self.a = self.bus.read(value) | self.a
+        address, value = self.read_absx()
+        self.a |= value
         self.check_flags_nz(self.a)
 
     def _ora_absy(self):
@@ -1026,6 +1032,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _rol_absx(self):
+        # FIXME: _absx without __read_double
         carry = ((self.__read_double + self.x) & 0b10000000) >> 7
         self.a = (((self.__read_double + self.x) << 1) & 0b11111110) + (
             self.status & 0b00000001
@@ -1075,6 +1082,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _ror_absx(self):
+        # FIXME: _absx without __read_double
         aux = self.a & 0b0000001
         self.a = (
             (self.__read_double + self.x) >> 1
@@ -1131,8 +1139,7 @@ class CPU(object):
 
     def _sbc_absx(self):
         carry = self.status & 0b00000001
-        address = self.__read_double() + self.x
-        value = self.bus.read(address)
+        address, value = self.read_absx()
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value1 = self.bus.read(address)
@@ -1229,9 +1236,7 @@ class CPU(object):
         return self.write_abs(self.a)
 
     def _sta_absx(self):
-        address = self.__read_double() + self.x
-        address = self.bus.write(address, self.a)
-        return address
+        return self.write_absx(self.a)
 
     def _sta_absy(self):
         address = self.__read_double() + self.y
