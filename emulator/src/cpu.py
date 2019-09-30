@@ -291,6 +291,10 @@ class CPU(object):
         addr = self.__read_word() + self.x
         return addr, self.bus.read(addr)
 
+    def read_zpy(self):
+        addr = self.__read_word() + self.y
+        return addr, self.bus.read(addr)
+
     def write_abs(self, value):
         addr = self.__read_double()
         self.bus.write(addr, value)
@@ -325,6 +329,11 @@ class CPU(object):
 
     def write_zpx(self, value):
         addr = self.__read_word() + self.x
+        self.bus.write(addr, value)
+        return addr
+
+    def write_zpy(self, value):
+        addr = self.__read_word() + self.y
         self.bus.write(addr, value)
         return addr
 
@@ -904,8 +913,7 @@ class CPU(object):
         return address
 
     def _ldx_zpy(self):
-        address = self.__read_word() + self.y
-        self.x = self.bus.read(address)
+        address, self.x = self.read_zpy()
         self.check_flags_nz(self.x)
         return address
 
@@ -1252,9 +1260,7 @@ class CPU(object):
         return self.write_zp(self.x)
 
     def _stx_zpy(self):
-        address = self.__read_word() + self.y
-        address = self.bus.write(address, self.x)
-        return address
+        return self.write_zpy(self.x)
 
     def _sty_abs(self):
         return self.write_abs(self.y)
