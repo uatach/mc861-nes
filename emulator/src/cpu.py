@@ -4,6 +4,13 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def dec(value):
+    return (value - 1) % 2 ** 8
+
+def inc(value, size=8):
+    return (value + 1) % 2 ** size
+
+
 def print_status(cpu, address=None):
     msg = (
         "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} "
@@ -716,7 +723,7 @@ class CPU(object):
 
     def _dec_abs(self):
         address = self.__read_double()
-        value = (self.bus.read(address) - 1) % 2 ** 8
+        value = dec(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -724,7 +731,7 @@ class CPU(object):
 
     def _dec_absx(self):
         address = self.__read_double() + self.x
-        value = (self.bus.read(address) - 1) % 2 ** 8
+        value = dec(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -732,7 +739,7 @@ class CPU(object):
 
     def _dec_zp(self):
         address = self.__read_word()
-        value = (self.bus.read(address) - 1) % 2 ** 8
+        value = dec(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -740,19 +747,19 @@ class CPU(object):
 
     def _dec_zpx(self):
         address = self.__read_word() + self.x
-        value = (self.bus.read(address) - 1) % 2 ** 8
+        value = dec(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
 
     def _dex(self):
-        self.x = (self.x - 1) % 2 ** 8
+        self.x = dec(self.x)
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
 
     def _dey(self):
-        self.y = (self.y - 1) % 2 ** 8
+        self.y = dec(self.y)
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
 
@@ -815,7 +822,7 @@ class CPU(object):
 
     def _inc_abs(self):
         address = self.__read_double()
-        value = (self.bus.read(address) + 1) % 2 ** 8
+        value = inc(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -823,7 +830,7 @@ class CPU(object):
 
     def _inc_absx(self):
         address = self.__read_double() + self.x
-        value = (self.bus.read(address) + 1) % 2 ** 8
+        value = inc(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -831,7 +838,7 @@ class CPU(object):
 
     def _inc_zp(self):
         address = self.__read_word()
-        value = (self.bus.read(address) + 1) % 2 ** 8
+        value = inc(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -839,19 +846,19 @@ class CPU(object):
 
     def _inc_zpx(self):
         address = self.__read_word() + self.x
-        value = (self.bus.read(address) + 1) % 2 ** 8
+        value = inc(self.bus.read(address))
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
         return address
 
     def _inx(self):
-        self.x = (self.x + 1) % 2 ** 8
+        self.x = inc(self.x)
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
 
     def _iny(self):
-        self.y = (self.y + 1) % 2 ** 8
+        self.y = inc(self.y)
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
 
@@ -1473,7 +1480,7 @@ class CPU(object):
         return value
 
     def __pc_increase(self):
-        self.pc = (self.pc + 1) % 2 ** 16
+        self.pc = inc(self.pc, 16)
 
     def __check_flag_zero(self, value):
         if value == 0:
