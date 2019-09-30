@@ -11,7 +11,7 @@ def print_status(cpu, address=None):
         "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
     if address is not None:
-        _, value = cpu.bus.read_target(address)
+        address, value = cpu.bus.read_target(address)
         msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, value)
     print(msg)
 
