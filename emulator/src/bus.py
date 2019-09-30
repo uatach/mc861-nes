@@ -16,22 +16,26 @@ class BUS(object):
                 self.mirrors[target] = origin
         log.debug("total mirrors: %s", hex(len(self.mirrors)))
 
-    def write(self, addr_range, data):
-        if isinstance(addr_range, tuple):
-            for addr, value in zip(range(*addr_range), data):
-                address = self.mirrors.get(addr, addr)
-                self.memory[address] = value
-            log.debug("memory size: %s", hex(len(self.memory)))
-        else:
-            address = self.mirrors.get(addr_range, addr_range)
-            self.memory[address] = data
-            log.debug("memory size: %s", hex(len(self.memory)))
-            return address
-
-    def read(self, addr):
-        address = self.mirrors.get(addr, addr)
-        return self.memory[address]
+    def read(self, addr, return_target=False):
+        addr = self.mirrors.get(addr, addr)
+        return self.memory[addr]
 
     def read_double(self, addr):
-        address = self.mirrors.get(addr, addr)
-        return (self.memory[address + 1] << 8) + self.memory[address]
+        addr = self.mirrors.get(addr, addr)
+        return (self.memory[addr + 1] << 8) + self.memory[addr]
+
+    def read_target(self, addr):
+        addr = self.mirrors.get(addr, addr)
+        return addr, self.memory[addr]
+
+    def write(self, addr, data):
+        addr = self.mirrors.get(addr, addr)
+        self.memory[addr] = data
+        log.debug("memory size: %s", hex(len(self.memory)))
+        return addr
+
+    def write_block(self, block, data):
+        for addr, value in zip(range(*block), data):
+            addr = self.mirrors.get(addr, addr)
+            self.memory[addr] = value
+        log.debug("memory size: %s", hex(len(self.memory)))

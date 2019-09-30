@@ -11,7 +11,8 @@ def print_status(cpu, address=None):
         "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
     if address is not None:
-        msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, cpu.bus.read(address))
+        _, value = cpu.bus.read_target(address)
+        msg += " MEM[0x{:04x}] = 0x{:02x} |".format(address, value)
     print(msg)
 
 
@@ -206,7 +207,7 @@ class CPU(object):
         rom_range = start, end
 
         # copy rom data to memory
-        address = self.bus.write(rom_range, rom)
+        self.bus.write_block(rom_range, rom)
 
         # ROM mirroring
         if size < 0x8000:
@@ -225,7 +226,7 @@ class CPU(object):
         self.status = 0x34
         self.a, self.x, self.y = 0, 0, 0
         self.sp = 0xFD
-        self.bus.write((0x0000, 0x07FF), 0x07FF * [0])
+        self.bus.write_block((0x0000, 0x07FF), 0x07FF * [0])
 
         # setting pc to RESET handler at 0xFFFC
         self.pc = self.bus.read_double(0xFFFC)
