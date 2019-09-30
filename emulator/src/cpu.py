@@ -283,6 +283,10 @@ class CPU(object):
         addr = self.bus.read_double(addr) + self.y
         return addr, self.bus.read(addr)
 
+    def read_zp(self):
+        addr = self.__read_word()
+        return addr, self.bus.read(addr)
+
     def write_abs(self, value):
         addr = self.__read_double()
         self.bus.write(addr, value)
@@ -307,6 +311,11 @@ class CPU(object):
     def write_indy(self, value):
         addr = self.__read_word()
         addr = self.bus.read_double(addr) + self.y
+        self.bus.write(addr, value)
+        return addr
+
+    def write_zp(self, value):
+        addr = self.__read_word()
         self.bus.write(addr, value)
         return addr
 
@@ -343,9 +352,8 @@ class CPU(object):
 
     def _adc_zp(self):
         # TODO: review test
+        address, value = self.read_zp()
         carry = self.status & 0b00000001
-        address = self.__read_word()
-        value = self.bus.read(address)
         aux = value + self.a + carry
         self.__check_flag_carry(aux)
         value = self.two_complements(value)
@@ -404,8 +412,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _and_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         self.a = value & self.a
         self.check_flags_nz(self.a)
 
@@ -457,8 +464,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _asl_zp(self):
-        address = self.__read_word()
-        aux = self.bus.read(address)
+        address, aux = self.read_zp()
         self.status |= ((aux) & 0b10000000) >> 7
         self.a = (aux << 1) & 0b11111111
         address = self.bus.write(address, aux)
@@ -513,8 +519,7 @@ class CPU(object):
         return address
 
     def _bit_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         self.__bit(value)
         return address
 
@@ -589,8 +594,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cmp_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         aux = self.a - value
         if self.a > value:
             self.status |= 0b00000001
@@ -663,8 +667,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cpx_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         aux = self.x - value
         if self.x > value:
             self.status |= 0b00000001
@@ -691,8 +694,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cpy_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         aux = self.y - value
         if self.y > value:
             self.status |= 0b00000001
@@ -724,8 +726,8 @@ class CPU(object):
         return address
 
     def _dec_zp(self):
-        address = self.__read_word()
-        value = dec(self.bus.read(address))
+        address, value = self.read_zp()
+        value = dec(value)
         address = self.bus.write(address, value)
         self.check_flags_nz(value)
         return address
@@ -751,8 +753,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _eor_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         self.a = self.a ^ value
         self.check_flags_nz(self.a)
 
@@ -802,8 +803,8 @@ class CPU(object):
         return address
 
     def _inc_zp(self):
-        address = self.__read_word()
-        value = inc(self.bus.read(address))
+        address, value = self.read_zp()
+        value = inc(value)
         address = self.bus.write(address, value)
         self.check_flags_nz(value)
         return address
@@ -869,8 +870,7 @@ class CPU(object):
         return address
 
     def _lda_zp(self):
-        address = self.__read_word()
-        self.a = self.bus.read(address)
+        address, self.a = self.read_zp()
         self.check_flags_nz(self.a)
         return address
 
@@ -895,8 +895,7 @@ class CPU(object):
         self.check_flags_nz(self.x)
 
     def _ldx_zp(self):
-        address = self.__read_word()
-        self.x = self.bus.read(address)
+        address, self.x = self.read_zp()
         self.check_flags_nz(self.x)
         return address
 
@@ -921,8 +920,7 @@ class CPU(object):
         self.check_flags_nz(self.y)
 
     def _ldy_zp(self):
-        address = self.__read_word()
-        self.y = self.bus.read(address)
+        address, self.y = self.read_zp()
         self.check_flags_nz(self.y)
         return address
 
@@ -951,8 +949,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _lsr_zp(self):
-        address = self.__read_word()
-        aux = self.bus.read(address)
+        address, aux = self.read_zp()
         self.status |= aux & 0b0000001
         self.a = (aux >> 1) & 0b01111111
         address = self.bus.write(address, aux)
@@ -1004,8 +1001,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _ora_zp(self):
-        address = self.__read_word()
-        value = self.bus.read(address)
+        address, value = self.read_zp()
         self.a = self.a | value
         self.check_flags_nz(self.a)
 
@@ -1061,8 +1057,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _rol_zp(self):
-        address = self.__read_word()
-        aux = self.bus.read(address)
+        address, aux = self.read_zp()
         carry = (aux & 0b10000000) >> 7
         self.a = ((aux << 1) & 0b11111110) + (self.status & 0b00000001)
         self.status |= carry
@@ -1104,9 +1099,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _ror_zp(self):
+        address, aux = self.read_zp()
         aux2 = self.a & 0b0000001
-        address = self.__read_word()
-        aux = self.bus.read(address)
         self.a = (aux >> 1) & 0b01111111 + self.status * 2 ** 7
         self.status |= aux2
         address = self.bus.write(address, aux)
@@ -1167,9 +1161,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _sbc_zp(self):
+        address, value = self.read_zp()
         carry = self.status & 0b00000001
-        address = self.__read_word()
-        value = self.bus.read(address)
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value = self.two_complements(value)
@@ -1248,9 +1241,7 @@ class CPU(object):
         return self.write_indy(self.a)
 
     def _sta_zp(self):
-        address = self.__read_word()
-        address = self.bus.write(address, self.a)
-        return address
+        return self.write_zp(self.a)
 
     def _sta_zpx(self):
         address = self.__read_word() + self.x
@@ -1261,9 +1252,7 @@ class CPU(object):
         return self.write_abs(self.x)
 
     def _stx_zp(self):
-        address = self.__read_word()
-        address = self.bus.write(address, self.x)
-        return address
+        return self.write_zp(self.x)
 
     def _stx_zpy(self):
         address = self.__read_word() + self.y
@@ -1274,9 +1263,7 @@ class CPU(object):
         return self.write_abs(self.y)
 
     def _sty_zp(self):
-        address = self.__read_word()
-        address = self.bus.write(address, self.y)
-        return address
+        return self.write_zp(self.y)
 
     def _sty_zpx(self):
         address = self.__read_word() + self.x
