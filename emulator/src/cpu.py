@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 def dec(value):
     return (value - 1) % 2 ** 8
 
+
 def inc(value, size=8):
     return (value + 1) % 2 ** size
 
@@ -117,7 +118,7 @@ class CPU(object):
             0x78: self._sei,
             0x79: self._adc_absy,
             0x7D: self._adc_absx,
-            # 0x7E: self._ror_absx,
+            0x7E: self._ror_absx,
             0x81: self._sta_indx,
             0x84: self._sty_zp,
             0x85: self._sta_zp,
@@ -261,6 +262,9 @@ class CPU(object):
         addr = self.__read_double()
         return addr, self.bus.read(addr)
 
+    def read_imm(self):
+        return self.__read_word()
+
     def write_abs(self, value):
         addr = self.__read_double()
         self.bus.write(addr, value)
@@ -290,7 +294,7 @@ class CPU(object):
 
     def _adc_imm(self):
         carry = self.status & 0b00000001
-        value = self.__read_word()
+        value = self.read_imm()
         before = self.a
         self.a = value + self.a + carry
         self.__check_flag_carry(self.a)
@@ -362,7 +366,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _and_imm(self):
-        self.a = self.__read_word() & self.a
+        self.a = self.read_imm() & self.a
         self.check_flags_nz(self.a)
 
     def _and_zp(self):
@@ -439,7 +443,7 @@ class CPU(object):
         return address
 
     def _bcc(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -447,7 +451,7 @@ class CPU(object):
             self.pc += value
 
     def _bcs(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -455,7 +459,7 @@ class CPU(object):
             self.pc += value
 
     def _beq(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -482,7 +486,7 @@ class CPU(object):
         return address
 
     def _bmi(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -490,7 +494,7 @@ class CPU(object):
             self.pc += value
 
     def _bne(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -498,7 +502,7 @@ class CPU(object):
             self.pc += value
 
     def _bpl(self):
-        value = self.__read_word()
+        value = self.read_imm()
 
         # handling negative number
         if value & 0b10000000:
@@ -515,7 +519,7 @@ class CPU(object):
         raise Exception("brk")
 
     def _bvc(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -523,7 +527,7 @@ class CPU(object):
             self.pc += value
 
     def _bvs(self):
-        value = self.__read_word()
+        value = self.read_imm()
         if value & 0b10000000:
             value = -1 * ((value ^ 0xFF) + 1)
 
@@ -543,7 +547,7 @@ class CPU(object):
         self.status &= 0b10111111
 
     def _cmp_imm(self):
-        value = self.__read_word()
+        value = self.read_imm()
         aux = self.a - value
         if self.a > value:
             self.status |= 0b00000001
@@ -623,7 +627,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cpx_imm(self):
-        value = self.__read_word()
+        value = self.read_imm()
         aux = self.x - value
         if self.x > value:
             self.status |= 0b00000001
@@ -651,7 +655,7 @@ class CPU(object):
         self.check_flags_nz(aux)
 
     def _cpy_imm(self):
-        value = self.__read_word()
+        value = self.read_imm()
         aux = self.y - value
         if self.y > value:
             self.status |= 0b00000001
@@ -715,7 +719,7 @@ class CPU(object):
         self.check_flags_nz(self.y)
 
     def _eor_imm(self):
-        value = self.__read_word()
+        value = self.read_imm()
         self.a = self.a ^ value
         self.check_flags_nz(self.a)
 
@@ -831,7 +835,7 @@ class CPU(object):
         return address
 
     def _lda_imm(self):
-        self.a = self.__read_word()
+        self.a = self.read_imm()
         log_value(self.a)
         self.check_flags_nz(self.a)
 
@@ -873,7 +877,7 @@ class CPU(object):
         return address
 
     def _ldx_imm(self):
-        self.x = self.__read_word()
+        self.x = self.read_imm()
         self.check_flags_nz(self.x)
 
     def _ldx_zp(self):
@@ -900,7 +904,7 @@ class CPU(object):
         return address
 
     def _ldy_imm(self):
-        self.y = self.__read_word()
+        self.y = self.read_imm()
         self.check_flags_nz(self.y)
 
     def _ldy_zp(self):
@@ -971,7 +975,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _ora_imm(self):
-        value = self.__read_word()
+        value = self.read_imm()
         self.a = self.a | value
         self.check_flags_nz(self.a)
 
@@ -1140,7 +1144,7 @@ class CPU(object):
 
     def _sbc_imm(self):  # A + compl1(m) - carry
         carry = self.status & 0b00000001
-        value = self.__read_word()
+        value = self.read_imm()
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value = self.two_complements(value)
@@ -1307,15 +1311,13 @@ class CPU(object):
 
     # private stuff
 
-    def __read_word(self, address=None):
-        address = address or self.pc
-        value = self.bus.read(address)
+    def __read_word(self):
+        value = self.bus.read(self.pc)
         self.__pc_increase()
         return value
 
-    def __read_double(self, address=None):
-        address = address or self.pc
-        value = self.bus.read_double(address)
+    def __read_double(self):
+        value = self.bus.read_double(self.pc)
         self.__pc_increase()
         self.__pc_increase()
         return value
@@ -1341,7 +1343,7 @@ class CPU(object):
         else:
             self.status &= 0b11111110
 
-    def __check_flag_overflow(self):
+    def __check_flag_overflow(self, value):
         # FIXME: add code
         pass
 
