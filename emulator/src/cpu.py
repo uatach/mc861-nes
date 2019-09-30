@@ -247,7 +247,6 @@ class CPU(object):
         log.debug("-" * 60)
         print_status(self, address)
 
-    # instructions
     def two_complements(self, value):
         print("two", value)
         if (value & (1 << 7)) != 0:
@@ -255,10 +254,20 @@ class CPU(object):
             print("two -", value)
         return value
 
+    # memory access with addressing modes
+    def read_abs(self):
+        addr = self.__read_double()
+        return addr, self.bus.read(addr)
+
+    def write_abs(self, value):
+        addr = self.__read_double()
+        self.bus.write(addr, value)
+        return addr
+
+    # instructions
     def _adc_abs(self):
+        address, value = self.read_abs()
         carry = self.status & 0b00000001
-        address = self.__read_double()
-        value = self.bus.read(address)
         self.a = value + self.a + carry
         self.__check_flag_carry(self.a)
         self.__check_flag_overflow(self.a)
@@ -378,8 +387,8 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _and_abs(self):
-        value = self.__read_double()
-        self.a = self.bus.read(value) & self.a
+        _, value = self.read_abs()
+        self.a &= value
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -410,6 +419,7 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _asl_abs(self):
+        # FIXME: _abs without __read_double
         self.status |= (self.__read_word() & 0b10000000) >> 7
         self.a = (self.__read_word() << 1) & 0b11111111
 
@@ -487,9 +497,7 @@ class CPU(object):
         if self.status & 0b00000010:
             self.pc += value
 
-    def __bit(self, address):
-        value = self.bus.read(address)
-
+    def __bit(self, value):
         if not self.a & value:
             self.status |= 0b00000010
         else:
@@ -498,13 +506,14 @@ class CPU(object):
         self.status = (self.status & 0b00111111) | (value & 0b11000000)
 
     def _bit_abs(self):
-        address = self.__read_double()
-        self.__bit(address)
+        address, value = self.read_abs()
+        self.__bit(value)
         return address
 
     def _bit_zp(self):
         address = self.__read_word()
-        self.__bit(address)
+        value = self.bus.read(address)
+        self.__bit(value)
         return address
 
     def _bmi(self):
@@ -601,8 +610,7 @@ class CPU(object):
         self.__check_flag_negative(aux)
 
     def _cmp_abs(self):
-        address = self.__read_double()
-        value = self.bus.read(address)
+        address, value = self.read_abs()
         aux = self.a - value
         if self.a > value:
             self.status |= 0b00000001
@@ -679,8 +687,7 @@ class CPU(object):
         self.__check_flag_negative(aux)
 
     def _cpx_abs(self):
-        address = self.__read_double()
-        value = self.bus.read(address)
+        address, value = self.read_abs()
         aux = self.x - value
         if self.x > value:
             self.status |= 0b00000001
@@ -711,8 +718,7 @@ class CPU(object):
         self.__check_flag_negative(aux)
 
     def _cpy_abs(self):
-        address = self.__read_double()
-        value = self.bus.read(address)
+        address, value = self.read_abs()
         aux = self.y - value
         if self.y > value:
             self.status |= 0b00000001
@@ -722,8 +728,8 @@ class CPU(object):
         self.__check_flag_negative(aux)
 
     def _dec_abs(self):
-        address = self.__read_double()
-        value = dec(self.bus.read(address))
+        address, value = self.read_abs()
+        value = dec(value)
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -784,8 +790,7 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _eor_abs(self):
-        address = self.__read_double()
-        value = self.bus.read(address)
+        address, value = self.read_abs()
         self.a = self.a ^ value
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
@@ -821,8 +826,8 @@ class CPU(object):
         self.__check_flag_negative(self.a)
 
     def _inc_abs(self):
-        address = self.__read_double()
-        value = inc(self.bus.read(address))
+        address, value = self.read_abs()
+        value = inc(value)
         address = self.bus.write(address, value)
         self.__check_flag_zero(value)
         self.__check_flag_negative(value)
@@ -877,15 +882,8 @@ class CPU(object):
         self.__stack_push(value & 0xFF)
         self.pc = address
 
-    def _lda_imm(self):
-        self.a = self.__read_word()
-        log_value(self.a)
-        self.__check_flag_zero(self.a)
-        self.__check_flag_negative(self.a)
-
     def _lda_abs(self):
-        address = self.__read_double()
-        self.a = self.bus.read(address)
+        address, self.a = self.read_abs()
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
@@ -903,6 +901,12 @@ class CPU(object):
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
         return address
+
+    def _lda_imm(self):
+        self.a = self.__read_word()
+        log_value(self.a)
+        self.__check_flag_zero(self.a)
+        self.__check_flag_negative(self.a)
 
     def _lda_indx(self):
         value = self.__read_word()
@@ -935,8 +939,7 @@ class CPU(object):
         return address
 
     def _ldx_abs(self):
-        address = self.__read_double()
-        self.x = self.bus.read(address)
+        address, self.x = self.read_abs()
         self.__check_flag_zero(self.x)
         self.__check_flag_negative(self.x)
         return address
@@ -968,8 +971,7 @@ class CPU(object):
         return address
 
     def _ldy_abs(self):
-        address = self.__read_double()
-        self.y = self.bus.read(address)
+        address, self.y = self.read_abs()
         self.__check_flag_zero(self.y)
         self.__check_flag_negative(self.y)
         return address
@@ -1001,6 +1003,7 @@ class CPU(object):
         return address
 
     def _lsr_abs(self):
+        # FIXME: _abs without __read_double
         self.status |= self.__read_word() & 0b0000001
         self.a = (self.__read_word() >> 1) & 0b01111111
 
@@ -1063,8 +1066,8 @@ class CPU(object):
         pass
 
     def _ora_abs(self):
-        value = self.__read_double()
-        self.a = self.bus.read(value) | self.a
+        address, value = self.read_abs()
+        self.a |= value
         self.__check_flag_zero(self.a)
         self.__check_flag_negative(self.a)
 
@@ -1131,6 +1134,7 @@ class CPU(object):
         return address
 
     def _rol_abs(self):
+        # FIXME: _abs without __read_double
         carry = (self.__read_word() & 0b10000000) >> 7
         self.a = ((self.__read_word() << 1) & 0b11111110) + (self.status & 0b00000001)
         self.status |= carry
@@ -1194,6 +1198,7 @@ class CPU(object):
         return address
 
     def _ror_abs(self):
+        # FIXME: _abs without __read_double
         aux = self.a & 0b0000001
         self.status |= self.__read_word() & 0b1000000
         self.a = (self.__read_word() >> 1) & 0b01111111 + self.status * 2 ** 7
@@ -1252,9 +1257,8 @@ class CPU(object):
         self.__stack_pull_pc()
 
     def _sbc_abs(self):
+        address, value = self.read_abs()
         carry = self.status & 0b00000001
-        address = self.__read_double()
-        value = self.bus.read(address)
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value1 = self.bus.read(address)
@@ -1370,9 +1374,7 @@ class CPU(object):
         self.status |= 0b00000100
 
     def _sta_abs(self):
-        address = self.__read_double()
-        address = self.bus.write(address, self.a)
-        return address
+        return self.write_abs(self.a)
 
     def _sta_absx(self):
         address = self.__read_double() + self.x
@@ -1407,9 +1409,7 @@ class CPU(object):
         return address
 
     def _stx_abs(self):
-        address = self.__read_double()
-        address = self.bus.write(address, self.x)
-        return address
+        return self.write_abs(self.x)
 
     def _stx_zp(self):
         address = self.__read_word()
@@ -1422,9 +1422,7 @@ class CPU(object):
         return address
 
     def _sty_abs(self):
-        address = self.__read_double()
-        address = self.bus.write(address, self.y)
-        return address
+        return self.write_abs(self.y)
 
     def _sty_zp(self):
         address = self.__read_word()
