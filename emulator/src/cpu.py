@@ -338,35 +338,27 @@ class CPU(object):
         return addr
 
     # instructions
-    def _adc_abs(self):
-        address, value = self.read_abs()
+    def adc(self, value):
         carry = self.status & 0b00000001
-        self.a = value + self.a + carry
-        self.__check_flag_carry(self.a)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
-
-    def _adc_absx(self):
-        address, value = self.read_absx()
-        carry = self.status & 0b00000001
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value1 = self.bus.read(address)
-        value1 = self.two_complements(value1)
-        self.a = self.two_complements(self.a)
-        self.a = self.bus.read(address) + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
-
-    def _adc_imm(self):
-        carry = self.status & 0b00000001
-        value = self.read_imm()
         before = self.a
         self.a = value + self.a + carry
         self.__check_flag_carry(self.a)
         self.a %= 0x100
         self.__check_flag_overflow_two(self.a, before, value)
         self.check_flags_nz(self.a)
+
+    def _adc_abs(self):
+        address, value = self.read_abs()
+        self.adc(value)
+
+    def _adc_absx(self):
+        address, value = self.read_absx()
+        self.adc(value)
+
+    def _adc_imm(self):
+        value = self.read_imm()
+        print("AAAAAAAAAAA")
+        self.adc(value)
 
     def _adc_zp(self):
         # TODO: review test
@@ -392,15 +384,8 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _adc_absy(self):
-        carry = self.status & 0b00000001
         address, value = self.read_absy()
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
-        self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(value)
 
     def _adc_indx(self):
         address, value = self.read_indx()
