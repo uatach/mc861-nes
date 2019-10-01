@@ -12,6 +12,12 @@ def inc(value, size=8):
     return (value + 1) % 2 ** size
 
 
+def two_complements(value):
+    if value & (1 << 7):
+        return value - (1 << 8)
+    return value
+
+
 def print_status(cpu, address=None):
     msg = (
         "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} "
@@ -248,11 +254,6 @@ class CPU(object):
         log.debug("-" * 60)
         print_status(self, address)
 
-    def two_complements(self, value):
-        if (value & (1 << 7)) != 0:
-            value = value - (1 << 8)
-        return value
-
     def check_flags_nz(self, value):
         self.__check_flag_negative(value)
         self.__check_flag_zero(value)
@@ -369,8 +370,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = value + self.a + carry
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = value + self.a + carry
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -384,8 +385,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = value + self.a + carry
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = value + self.a + carry
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -395,8 +396,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = value + self.a + carry
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = value + self.a + carry
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -476,24 +477,21 @@ class CPU(object):
 
     def _bcc(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if not (self.status & 0b00000001):
             self.pc += value
 
     def _bcs(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if self.status & 0b00000001:
             self.pc += value
 
     def _beq(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if self.status & 0b00000010:
             self.pc += value
@@ -518,26 +516,21 @@ class CPU(object):
 
     def _bmi(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if self.status & 0b10000000:
             self.pc += value
 
     def _bne(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if not (self.status & 0b00000010):
             self.pc += value
 
     def _bpl(self):
         value = self.read_imm()
-
-        # handling negative number
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if not (self.status & 0b10000000):
             self.pc += value
@@ -551,16 +544,14 @@ class CPU(object):
 
     def _bvc(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if not (self.status & 0b01000000):
             self.pc += value
 
     def _bvs(self):
         value = self.read_imm()
-        if value & 0b10000000:
-            value = -1 * ((value ^ 0xFF) + 1)
+        value = two_complements(value)
 
         if self.status & 0b01000000:
             self.pc += value
@@ -974,7 +965,7 @@ class CPU(object):
 
     def _ora_imm(self):
         value = self.read_imm()
-        self.a = self.a | value
+        self.a |= value
         self.check_flags_nz(self.a)
 
     def _ora_indx(self):
@@ -1116,8 +1107,8 @@ class CPU(object):
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value1 = self.bus.read(address)
-        value1 = self.two_complements(value1)
-        self.a = self.two_complements(self.a)
+        value1 = two_complements(value1)
+        self.a = two_complements(self.a)
         self.a = self.a - value1 - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1128,8 +1119,8 @@ class CPU(object):
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
         value1 = self.bus.read(address)
-        value1 = self.two_complements(value1)
-        self.a = self.two_complements(self.a)
+        value1 = two_complements(value1)
+        self.a = two_complements(self.a)
         self.a = self.a - value1 - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1139,8 +1130,8 @@ class CPU(object):
         value = self.read_imm()
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1150,8 +1141,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1161,8 +1152,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1172,8 +1163,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1183,8 +1174,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1194,8 +1185,8 @@ class CPU(object):
         carry = self.status & 0b00000001
         aux = self.a - value - (1 - carry)
         self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
+        value = two_complements(value)
+        self.a = two_complements(self.a)
         self.a = self.a - value - (1 - carry)
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
@@ -1266,6 +1257,7 @@ class CPU(object):
 
     def _txs(self):
         self.sp = 0x0100 | self.x
+        # NOTE: do not check flags
 
     def _tya(self):
         self.a = self.y
