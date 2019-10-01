@@ -357,20 +357,12 @@ class CPU(object):
 
     def _adc_imm(self):
         value = self.read_imm()
-        print("AAAAAAAAAAA")
         self.adc(value)
 
     def _adc_zp(self):
         # TODO: review test
         address, value = self.read_zp()
-        carry = self.status & 0b00000001
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = self.two_complements(value)
-        self.a = self.two_complements(self.a)
-        self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(value)
 
     def _adc_zpx(self):
         address, value = self.read_zpx()
