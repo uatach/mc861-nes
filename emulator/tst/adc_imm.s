@@ -35,13 +35,9 @@ test:
   ADC #$1     ;with the carry
   STA $44   ;cleared ...
 
-  LDA $15   ;Add next byte
-  ADC #$2      ;pair without
-  STA $44 ;clearing carry
-
   LDA $20   ;and the next
   LDA #$7
-  ADC #$fe      ;pair...
+  ADC #$7A      ;pair...
   STA $44
   BRK ; Abort execution
 

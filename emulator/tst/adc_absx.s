@@ -34,7 +34,14 @@ test:
   STA $2092
   LDA #$79
   LDX #$92
-  ADC $2000, X
+  ADC $2000, X ;test overflow
+
+  LDA #$1
+  STA $2092
+  LDA #$FF
+  LDX #$92
+  ADC $2000, X ;test carry
+
   BRK ; Abort execution
 
 NMI:
