@@ -680,45 +680,52 @@ class CPU(object):
         self.y = dec(self.y)
         self.check_flags_nz(self.y)
 
-    def _eor_imm(self):
-        value = self.read_imm()
-        self.a = self.a ^ value
-        self.check_flags_nz(self.a)
-
-    def _eor_zp(self):
-        address, value = self.read_zp()
-        self.a = self.a ^ value
-        self.check_flags_nz(self.a)
-
-    def _eor_zpx(self):
-        address, value = self.read_zpx()
-        self.a = self.a ^ value
-        self.check_flags_nz(self.a)
-
     def _eor_abs(self):
         address, value = self.read_abs()
-        self.a = self.a ^ value
+        self.a ^= value
         self.check_flags_nz(self.a)
+        return address
 
     def _eor_absx(self):
         address, value = self.read_absx()
-        self.a = self.a ^ value
+        self.a ^= value
         self.check_flags_nz(self.a)
+        return address
 
     def _eor_absy(self):
         address, value = self.read_absy()
-        self.a = self.a ^ value
+        self.a ^= value
+        self.check_flags_nz(self.a)
+        return address
+
+    def _eor_imm(self):
+        value = self.read_imm()
+        self.a ^= value
         self.check_flags_nz(self.a)
 
     def _eor_indx(self):
         address, value = self.read_indx()
-        self.a = self.a ^ value
+        self.a ^= value
         self.check_flags_nz(self.a)
+        return address
 
     def _eor_indy(self):
         address, value = self.read_indy()
-        self.a = self.a ^ value
+        self.a ^= value
         self.check_flags_nz(self.a)
+        return address
+
+    def _eor_zp(self):
+        address, value = self.read_zp()
+        self.a ^= value
+        self.check_flags_nz(self.a)
+        return address
+
+    def _eor_zpx(self):
+        address, value = self.read_zpx()
+        self.a ^= value
+        self.check_flags_nz(self.a)
+        return address
 
     def _inc_abs(self):
         address, value = self.read_abs()
