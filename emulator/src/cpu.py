@@ -968,51 +968,38 @@ class CPU(object):
         address, self.status = self.__stack_pull()
         return address
 
+    def __rol(self, value):
+        carry = (value & 0b10000000) >> 7
+        value = ((value << 1) & 0b11111110) | (self.status & 0b00000001) & 0xFF
+        self.status = (self.status & 0b11111110) | carry
+        self.check_flags_nz(value)
+        return value
+
     def _rol_abs(self):
-        # FIXME: _abs without __read_double
-        carry = (self.__read_word() & 0b10000000) >> 7
-        self.a = ((self.__read_word() << 1) & 0b11111110) + (self.status & 0b00000001)
-        self.status |= carry
-        self.check_flags_nz(self.a)
+        address, value = self.read_abs()
+        value = self.__rol(value)
+        self.bus.write(address, value)
+        return address
 
     def _rol_absx(self):
-        # FIXME: _absx without __read_double
-        carry = ((self.__read_double + self.x) & 0b10000000) >> 7
-        self.a = (((self.__read_double + self.x) << 1) & 0b11111110) + (
-            self.status & 0b00000001
-        )
-        self.status |= carry
-        self.check_flags_nz(self.a)
-
-    # FIXME: there are two _rol_acc
-    def _rol_acc(self):
-        carry = (self.a & 0b10000000) >> 7
-        self.a = (((self.a << 1) & 0b11111110)) + (self.status & 0b00000001)
-        self.status |= carry & 0b00000001
-        self.check_flags_nz(self.a)
+        address, value = self.read_absx()
+        value = self.__rol(value)
+        self.bus.write(address, value)
+        return address
 
     def _rol_acc(self):
-        carry = self.status & 0b00000001
-        new_carry = (self.a & 0b10000000) >> 7
-        self.status = new_carry | self.status
-        self.a = (self.a << 1) + carry
-        self.check_flags_nz(self.a)
+        self.a = self.__rol(self.a)
 
     def _rol_zp(self):
-        address, aux = self.read_zp()
-        carry = (aux & 0b10000000) >> 7
-        self.a = ((aux << 1) & 0b11111110) + (self.status & 0b00000001)
-        self.status |= carry
-        self.check_flags_nz(self.a)
+        address, value = self.read_zp()
+        value = self.__rol(value)
+        self.bus.write(address, value)
         return address
 
     def _rol_zpx(self):
-        address, aux = self.read_zpx()
-        carry = (aux & 0b10000000) >> 7
-        self.a = ((aux << 1) & 0b11111110) + (self.status & 0b00000001)
-        self.status |= carry
-        address = self.bus.write(address, aux)
-        self.check_flags_nz(self.a)
+        address, value = self.read_zpx()
+        value = self.__rol(value)
+        self.bus.write(address, value)
         return address
 
     def _ror_abs(self):
