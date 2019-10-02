@@ -395,32 +395,26 @@ class CPU(object):
         self.__check_flag_overflow(self.a)
         self.check_flags_nz(self.a)
 
-    def _and_imm(self):
-        self.a = self.read_imm() & self.a
-        self.check_flags_nz(self.a)
-
-    def _and_zp(self):
-        address, value = self.read_zp()
-        self.a = value & self.a
-        self.check_flags_nz(self.a)
-
-    def _and_zpx(self):
-        address, value = self.read_zpx()
-        self.a &= value
-        self.check_flags_nz(self.a)
-
     def _and_abs(self):
         _, value = self.read_abs()
         self.a &= value
         self.check_flags_nz(self.a)
+        return address
 
     def _and_absx(self):
         address, value = self.read_absx()
         self.a &= value
         self.check_flags_nz(self.a)
+        return address
 
     def _and_absy(self):
         address, value = self.read_absy()
+        self.a &= value
+        self.check_flags_nz(self.a)
+        return address
+
+    def _and_imm(self):
+        value = self.read_imm()
         self.a &= value
         self.check_flags_nz(self.a)
 
@@ -428,11 +422,25 @@ class CPU(object):
         address, value = self.read_indx()
         self.a &= value
         self.check_flags_nz(self.a)
+        return address
 
     def _and_indy(self):
         address, value = self.read_indy()
         self.a &= value
         self.check_flags_nz(self.a)
+        return address
+
+    def _and_zp(self):
+        address, value = self.read_zp()
+        self.a &= value
+        self.check_flags_nz(self.a)
+        return address
+
+    def _and_zpx(self):
+        address, value = self.read_zpx()
+        self.a &= value
+        self.check_flags_nz(self.a)
+        return address
 
     def _asl_abs(self):
         # FIXME: _abs without __read_double
