@@ -561,28 +561,9 @@ class CPU(object):
     def _clv(self):
         self.status &= 0b10111111
 
-    def _cmp_imm(self):
-        value = self.read_imm()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
-
-    def _cmp_zp(self):
-        address, value = self.read_zp()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
-
-    def _cmp_zpx(self):
-        address, value = self.read_zpx()
-        aux = self.a - value
-        if self.a > value:
+    def __cmp(self, x, y):
+        aux = x - y
+        if x > y:
             self.status |= 0b00000001
         else:
             self.status &= 0b11111110
@@ -590,102 +571,70 @@ class CPU(object):
 
     def _cmp_abs(self):
         address, value = self.read_abs()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
 
     def _cmp_absx(self):
         address, value = self.read_absx()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
 
     def _cmp_absy(self):
         address, value = self.read_absy()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
+
+    def _cmp_imm(self):
+        value = self.read_imm()
+        self.__cmp(self.a, value)
 
     def _cmp_indx(self):
         address, value = self.read_indx()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
 
     def _cmp_indy(self):
         address, value = self.read_indy()
-        aux = self.a - value
-        if self.a > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
 
-    def _cpx_imm(self):
-        value = self.read_imm()
-        aux = self.x - value
-        if self.x > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
-
-    def _cpx_zp(self):
+    def _cmp_zp(self):
         address, value = self.read_zp()
-        aux = self.x - value
-        if self.x > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.a, value)
+        return address
+
+    def _cmp_zpx(self):
+        address, value = self.read_zpx()
+        self.__cmp(self.a, value)
+        return address
 
     def _cpx_abs(self):
         address, value = self.read_abs()
-        aux = self.x - value
-        if self.x > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.x, value)
+        return address
 
-    def _cpy_imm(self):
+    def _cpx_imm(self):
         value = self.read_imm()
-        aux = self.y - value
-        if self.y > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.x, value)
 
-    def _cpy_zp(self):
+    def _cpx_zp(self):
         address, value = self.read_zp()
-        aux = self.y - value
-        if self.y > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.x, value)
+        return address
 
     def _cpy_abs(self):
         address, value = self.read_abs()
-        aux = self.y - value
-        if self.y > value:
-            self.status |= 0b00000001
-        else:
-            self.status &= 0b11111110
-        self.check_flags_nz(aux)
+        self.__cmp(self.y, value)
+        return address
+
+    def _cpy_imm(self):
+        value = self.read_imm()
+        self.__cmp(self.y, value)
+
+    def _cpy_zp(self):
+        address, value = self.read_zp()
+        self.__cmp(self.y, value)
+        return address
 
     def _dec_abs(self):
         address, value = self.read_abs()
