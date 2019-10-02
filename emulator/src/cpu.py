@@ -909,16 +909,19 @@ class CPU(object):
         address, value = self.read_abs()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_absx(self):
         address, value = self.read_absx()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_absy(self):
         address, value = self.read_absy()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_imm(self):
         value = self.read_imm()
@@ -929,21 +932,25 @@ class CPU(object):
         address, value = self.read_indx()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_indy(self):
         address, value = self.read_indy()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_zp(self):
         address, value = self.read_zp()
         self.a = self.a | value
         self.check_flags_nz(self.a)
+        return address
 
     def _ora_zpx(self):
         address, value = self.read_zpx()
         self.a |= value
         self.check_flags_nz(self.a)
+        return address
 
     def _pha(self):
         return self.__stack_push(self.a)
