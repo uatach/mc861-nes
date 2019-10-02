@@ -63,6 +63,12 @@ RESET:
   LDA #$42
   AND $02,X
   LDA #$42
+  AND $0400
+  LDA #$42
+  AND $0401
+  LDA #$42
+  AND $0402
+  LDA #$42
   AND $0400,X
   LDA #$42
   AND $0401,X

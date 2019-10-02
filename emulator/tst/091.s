@@ -63,6 +63,12 @@ RESET:
   LDA #$42
   EOR $02,X
   LDA #$42
+  EOR $0400
+  LDA #$42
+  EOR $0401
+  LDA #$42
+  EOR $0402
+  LDA #$42
   EOR $0400,X
   LDA #$42
   EOR $0401,X

@@ -396,7 +396,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _and_abs(self):
-        _, value = self.read_abs()
+        address, value = self.read_abs()
         self.a &= value
         self.check_flags_nz(self.a)
         return address
