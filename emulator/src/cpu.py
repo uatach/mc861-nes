@@ -1002,47 +1002,38 @@ class CPU(object):
         self.bus.write(address, value)
         return address
 
+    def __ror(self, value):
+        carry = value & 0b00000001
+        value = (value >> 1) | ((self.status & 0b00000001) << 7)
+        self.status = (self.status & 0b11111110) | carry
+        self.check_flags_nz(value)
+        return value
+
     def _ror_abs(self):
-        # FIXME: _abs without __read_double
-        aux = self.a & 0b0000001
-        self.status |= self.__read_word() & 0b1000000
-        self.a = (self.__read_word() >> 1) & 0b01111111 + self.status * 2 ** 7
-        self.status |= aux
-        self.check_flags_nz(self.a)
+        address, value = self.read_abs()
+        value = self.__ror(value)
+        self.bus.write(address, value)
+        return address
 
     def _ror_absx(self):
-        # FIXME: _absx without __read_double
-        aux = self.a & 0b0000001
-        self.a = (
-            (self.__read_double + self.x) >> 1
-        ) & 0b01111111 + self.status * 2 ** 7
-        self.status |= aux
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        address, value = self.read_absx()
+        value = self.__ror(value)
+        self.bus.write(address, value)
+        return address
 
     def _ror_acc(self):
-        aux = self.a & 0b0000001
-        self.a = (self.a >> 1) & 0b01111111 + self.status * 2 ** 7
-        self.status |= aux
-        self.check_flags_nz(self.a)
+        self.a = self.__ror(self.a)
 
     def _ror_zp(self):
-        address, aux = self.read_zp()
-        aux2 = self.a & 0b0000001
-        self.a = (aux >> 1) & 0b01111111 + self.status * 2 ** 7
-        self.status |= aux2
-        address = self.bus.write(address, aux)
-        self.check_flags_nz(self.a)
+        address, value = self.read_zp()
+        value = self.__ror(value)
+        self.bus.write(address, value)
         return address
 
     def _ror_zpx(self):
-        address, aux = self.read_zpx()
-        aux2 = self.a & 0b0000001
-        self.status |= aux & 0b1000000
-        self.a = (aux >> 1) & 0b01111111 + self.status * 2 ** 7
-        self.status |= aux2
-        address = self.bus.write(address, aux)
-        self.check_flags_nz(self.a)
+        address, value = self.read_zpx()
+        value = self.__ror(value)
+        self.bus.write(address, value)
         return address
 
     def _rti(self):
