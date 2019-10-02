@@ -30,10 +30,16 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
+  LDX #$FF
+  STX $a202
+  LDX #$01
+  STX $15
+  LDX #$a2
+  STX $16
   LDA #$7F
+  LDY #$1
   SEC
-  SBC #$FF      
-  STA $44
+  SBC ($15) , Y
   BRK ; Abort execution
 
 NMI:

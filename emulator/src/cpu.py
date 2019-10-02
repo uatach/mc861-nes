@@ -367,14 +367,7 @@ class CPU(object):
 
     def _adc_zpx(self):
         address, value = self.read_zpx()
-        carry = self.status & 0b00000001
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(value)
 
     def _adc_absy(self):
         address, value = self.read_absy()
@@ -1103,93 +1096,35 @@ class CPU(object):
 
     def _sbc_abs(self):
         address, value = self.read_abs()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value1 = self.bus.read(address)
-        value1 = two_complements(value1)
-        self.a = two_complements(self.a)
-        self.a = self.a - value1 - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_absx(self):
-        carry = self.status & 0b00000001
         address, value = self.read_absx()
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value1 = self.bus.read(address)
-        value1 = two_complements(value1)
-        self.a = two_complements(self.a)
-        self.a = self.a - value1 - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
-    def _sbc_imm(self):  # A + compl1(m) - carry
-        carry = self.status & 0b00000001
+    def _sbc_imm(self):
         value = self.read_imm()
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_zp(self):
         address, value = self.read_zp()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_zpx(self):
         address, value = self.read_zpx()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_absy(self):
         address, value = self.read_absy()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_indx(self):
         address, value = self.read_indx()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sbc_indy(self):
         address, value = self.read_indy()
-        carry = self.status & 0b00000001
-        aux = self.a - value - (1 - carry)
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = self.a - value - (1 - carry)
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(~value)
 
     def _sec(self):
         self.status |= 0b00000001
