@@ -1165,10 +1165,6 @@ class CPU(object):
         else:
             self.status &= 0b11111110
 
-    def __check_flag_overflow(self, value):
-        # FIXME: add code
-        pass
-
     def __check_flag_overflow_two(self, value, parc1, parc2):
         mask = 0b10000000
         overflow_res = value & mask
