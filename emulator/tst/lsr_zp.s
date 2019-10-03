@@ -30,10 +30,27 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
+<<<<<<< HEAD
   LDA #$8
   STA #$44
   LDA #$2
   LSR $44
+=======
+ CLC
+ LDA #$20
+ STA $0f
+ LDA #$0
+ LSR $0f
+ LSR $0f
+ LSR $0f
+ LSR $0f
+ LSR $0f
+ LSR $0f
+ LSR $0f
+ LSR $0f
+
+ 
+>>>>>>> 61524d9c709a3e7edea21d4f7f2a0b151213391a
 
   BRK ; Abort execution
 

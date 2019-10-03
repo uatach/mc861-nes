@@ -31,8 +31,16 @@ RESET:
   JMP test
 test:
  CLC
+<<<<<<< HEAD
   ADC #$8   ;pair without
 
+=======
+ LDA #$08  ;pair without
+ 
+>>>>>>> 61524d9c709a3e7edea21d4f7f2a0b151213391a
+  LSR
+  LSR
+  LSR
   LSR
   LSR
   LSR
@@ -72,8 +80,11 @@ test:
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 61524d9c709a3e7edea21d4f7f2a0b151213391a
 
   BRK ; Abort execution
 
