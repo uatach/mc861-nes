@@ -2,7 +2,7 @@
 ; constants
 ;----------------------------------------------------------------
 PRG_COUNT = 1 ;1 = 16KB, 2 = 32KB
-MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
+MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %0100 = four-screen
 
 ;----------------------------------------------------------------
 ; variables
@@ -31,51 +31,20 @@ RESET:
   JMP test
 test:
  CLC
- LDA #$08  ;pair without
+
+ LDA #$20
+ STA $010F
+ LDA #$0000
+
+ LDX #$0F
+ LSR $0100, X
+ LSR $0100, X
+ LSR $0100, X
+ LSR $0100, X
+ LSR $0100, X
+ LSR $0100, X
+ LSR $0100, X
  
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  CLC
-  ADC #$8
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-
-  ADC #$8
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ADC #$8
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  
-
-
-
 
   BRK ; Abort execution
 

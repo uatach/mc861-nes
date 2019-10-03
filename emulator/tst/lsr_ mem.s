@@ -37,9 +37,6 @@ test:
   LSR
   LSR
   LSR
-  LSR
-  LSR
-  LSR
   CLC
   ADC #$8
   ASL

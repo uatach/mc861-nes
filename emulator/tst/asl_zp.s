@@ -31,51 +31,19 @@ RESET:
   JMP test
 test:
  CLC
- LDA #$08  ;pair without
+ LDA #$1
+ STA $0f
+ LDA #$0
+ ASL $0f
+ ASL $0f
+ ASL $0f
+ ASL $0f
+ ASL $0f
+ ASL $0f
+ ASL $0f
+ ASL $0f
+
  
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  LSR
-  CLC
-  ADC #$8
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-  ASL
-
-  ADC #$8
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ROR
-  ADC #$8
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  
-
-
-
 
   BRK ; Abort execution
 
