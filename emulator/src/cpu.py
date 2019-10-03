@@ -375,25 +375,11 @@ class CPU(object):
 
     def _adc_indx(self):
         address, value = self.read_indx()
-        carry = self.status & 0b00000001
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(value)
 
     def _adc_indy(self):
         address, value = self.read_indy()
-        carry = self.status & 0b00000001
-        aux = value + self.a + carry
-        self.__check_flag_carry(aux)
-        value = two_complements(value)
-        self.a = two_complements(self.a)
-        self.a = value + self.a + carry
-        self.__check_flag_overflow(self.a)
-        self.check_flags_nz(self.a)
+        self.adc(value)
 
     def _and_abs(self):
         address, value = self.read_abs()
