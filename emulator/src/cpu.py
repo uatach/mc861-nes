@@ -239,7 +239,7 @@ class CPU(object):
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
         self.status = 0x34
         self.a, self.x, self.y = 0, 0, 0
-        self.sp = 0xFD
+        self.sp = 0x01FD
         self.bus.write_block((0x0000, 0x07FF), 0x07FF * [0])
 
         # setting pc to RESET handler at 0xFFFC
