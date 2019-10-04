@@ -35,6 +35,12 @@ test:
   LDA #$79
   LDX #$2
   ADC $a0, X
+
+  LDX #$1
+  STX $a2
+  LDA #$FF
+  LDX #$2
+  ADC $a0, X
   BRK ; Abort execution
 
 NMI:

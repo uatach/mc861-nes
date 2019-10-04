@@ -8,6 +8,6 @@ except:  # pragma: no cover
     pass
 
 __name__ = "pynesemu"
-__version__ = "0.7.1"
+__version__ = "0.7.2"
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

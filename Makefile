@@ -14,13 +14,13 @@ ${CROSS_AS}:
 	cd emulator/ext/asm6; make all
 
 ${NES}:
-	pip install emulator/
+	pip install -e emulator/
 
 ${BIN}:
 	@mkdir -p ${BIN}
 
 ${BIN}/%: ${TST}/%.s
-	${CROSS_AS} $^ $@
+	${CROSS_AS} $^ $@ &>/dev/null
 
 ${LOG}:
 	@mkdir -p ${LOG}

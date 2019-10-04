@@ -12,19 +12,17 @@ def get_filenames(directory):
 
 
 def collect_examples():
-    names = []
-    outputs = []
-    for filename, filepath in get_filenames("res/"):
-        names.append(filename[:-2])
-        outputs.append(filepath)
-
     inputs = []
     for filename, filepath in get_filenames("bin/"):
-        if filename in names:
-            inputs.append(filepath)
+        inputs.append(filepath)
 
+    outputs = []
+    for filename, filepath in get_filenames("res/"):
+        outputs.append(filepath)
+
+    assert len(inputs) == len(outputs), 'the number of tests do not match the number of outputs'
     for a, b in list(zip(sorted(inputs), sorted(outputs))):
-        assert a.split("/")[-1] == b.split("/")[-1][:-2]
+        assert a.split("/")[-1] == b.split("/")[-1][:-2], 'expected tests names do not match'
     return list(zip(sorted(inputs), sorted(outputs)))
 
 

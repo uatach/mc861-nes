@@ -37,5 +37,5 @@ class NES(object):
                 self.cpu.step()
             except Exception as e:
                 if str(e) != "brk":
-                    log.error(e)
+                    raise e
                 break

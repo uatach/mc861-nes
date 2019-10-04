@@ -28,14 +28,20 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  JMP test
-test:
-  LDA #$81 ; test flag negative
-  LDX #$80
-  STX $1
-  ORA $1
-  BRK ; Abort execution
+ ;TEST ORA ABS
+  LDA #$FF ;
+  STA $FF
+  LDA #$00 ;
+  ORA $FF
 
+;TEST FLAG 0
+  LDA #$00 ;
+  STA $FF
+  LDA #$00 ;
+  ORA $FF
+  
+  
+  
 NMI:
   ;NOTE: NMI code goes here
 

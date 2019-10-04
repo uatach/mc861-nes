@@ -30,9 +30,12 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
- CLC
+  CLC
   ADC #$8   ;pair without
- 
+  LDA #$08  ;pair without
+  LSR
+  LSR
+  LSR
   LSR
   LSR
   LSR
@@ -69,11 +72,6 @@ test:
   ROL
   ROL
   ROL
-  
-
-
-
- 
 
   BRK ; Abort execution
 
