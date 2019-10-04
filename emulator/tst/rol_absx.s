@@ -30,22 +30,20 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 
 RESET:
   LDA #$80
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
-  ROL
+  STA #$01F1
+  LDX #$F1
+  
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
+  ROL #$0100, X
   BRK ; Abort execution
 
 NMI:
