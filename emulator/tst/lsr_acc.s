@@ -28,16 +28,14 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
   .base $10000-(PRG_COUNT*$4000)
 
 RESET:
-  LDA #$80
-  ASL A
-  BCC carry ;Go to label "carry" if flag carry is not set
-  LDX #$10   ;Execution continues here if is set
-  CLC
-  BCC carry ;Go to label "carry" if flag carry is not set
-  LDX #$20   ;Execution continues here if is set
-
-carry:
+  JMP test
+test:
+  LDA #$8
+  STA #$8
+  LSR
+  LSR
   BRK ; Abort execution
+
 
 NMI:
   ;NOTE: NMI code goes here
