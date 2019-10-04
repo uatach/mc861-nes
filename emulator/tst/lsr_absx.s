@@ -2,11 +2,8 @@
 ; constants
 ;----------------------------------------------------------------
 PRG_COUNT = 1 ;1 = 16KB, 2 = 32KB
-<<<<<<< HEAD
 MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
-=======
 MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %0100 = four-screen
->>>>>>> 61524d9c709a3e7edea21d4f7f2a0b151213391a
 
 ;----------------------------------------------------------------
 ; variables
@@ -34,24 +31,20 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %0100 = four-screen
 RESET:
   JMP test
 test:
-<<<<<<< HEAD
-=======
- CLC
+   CLC
 
- LDA #$20
- STA $010F
- LDA #$0000
+   LDA #$20
+   STA $010F
+   LDA #$0000
 
- LDX #$0F
- LSR $0100, X
- LSR $0100, X
- LSR $0100, X
- LSR $0100, X
- LSR $0100, X
- LSR $0100, X
- LSR $0100, X
- 
->>>>>>> 61524d9c709a3e7edea21d4f7f2a0b151213391a
+   LDX #$0F
+   LSR $0100, X
+   LSR $0100, X
+   LSR $0100, X
+   LSR $0100, X
+   LSR $0100, X
+   LSR $0100, X
+   LSR $0100, X
 
   BRK ; Abort execution
 
