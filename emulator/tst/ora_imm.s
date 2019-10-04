@@ -30,8 +30,8 @@ MIRRORING = %0001 ;%0000 = horizontal, %0001 = vertical, %1000 = four-screen
 RESET:
   JMP test
 test:
-  LDA #$81 ; test flag negative
-  ORA #$80
+  LDA #$00 ; test flag negative
+  ORA #$FF
   BRK ; Abort execution
 
 NMI:

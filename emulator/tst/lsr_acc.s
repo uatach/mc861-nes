@@ -31,8 +31,13 @@ RESET:
   JMP test
 test:
   LDA #$8
-  STA #$8
   LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  
   LSR
   BRK ; Abort execution
 
