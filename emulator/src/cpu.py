@@ -966,7 +966,8 @@ class CPU(object):
         return address
 
     def _plp(self):
-        address, self.status = self.__stack_pull()
+        address, value = self.__stack_pull()
+        self.status = (self.status & 0b00110000) | (value & 0b11001111)
         return address
 
     def __rol(self, value):
