@@ -30,8 +30,8 @@ def print_status(cpu, address=None):
     print(msg)
 
 
-def log_value(value):
-    log.debug("value: 0b{:08b} - 0x{:02x} - {:03d}".format(value, value, value))
+def log_value(x):
+    log.debug("value: 0b{:08b} - 0x{:02X} - {:03d}".format(x, x, x))
 
 
 @attr.s
@@ -261,40 +261,58 @@ class CPU(object):
     # memory access with addressing modes
     def read_abs(self):
         addr = self.__read_double()
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_absx(self):
         addr = self.__read_double() + self.x
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_absy(self):
         addr = self.__read_double() + self.y
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_imm(self):
-        return self.__read_word()
+        value = self.__read_word()
+        log_value(value)
+        return value
 
     def read_indx(self):
         addr = self.__read_word() + self.x
         addr = self.bus.read_double(addr)
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_indy(self):
         addr = self.__read_word()
         addr = self.bus.read_double(addr) + self.y
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_zp(self):
         addr = self.__read_word()
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_zpx(self):
         addr = self.__read_word() + self.x
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def read_zpy(self):
         addr = self.__read_word() + self.y
-        return addr, self.bus.read(addr)
+        value = self.bus.read(addr)
+        log_value(value)
+        return addr, value
 
     def write_abs(self, value):
         addr = self.__read_double()
@@ -428,7 +446,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
         return address
 
-    def __asl (self,value):
+    def __asl(self, value):
         carry = (value & 0b10000000) >> 7
         value = (value << 1) & 0b11111111
         self.status = (self.status & 0b11111110) | carry
@@ -438,13 +456,13 @@ class CPU(object):
     def _asl_abs(self):
         address, value = self.read_abs()
         value = self.__asl(value)
-        self.bus.write (address, value)
+        self.bus.write(address, value)
         return address
 
     def _asl_absx(self):
         address, value = self.read_absx()
         value = self.__asl(value)
-        self.bus.write (address, value)
+        self.bus.write(address, value)
         return address
 
     def _asl_acc(self):
@@ -453,13 +471,13 @@ class CPU(object):
     def _asl_zp(self):
         address, value = self.read_zp()
         value = self.__asl(value)
-        self.bus.write (address, value)
+        self.bus.write(address, value)
         return address
 
     def _asl_zpx(self):
         address, value = self.read_zpx()
         value = self.__asl(value)
-        self.bus.write (address, value)
+        self.bus.write(address, value)
         return address
 
     def _bcc(self):
@@ -781,7 +799,6 @@ class CPU(object):
 
     def _lda_imm(self):
         self.a = self.read_imm()
-        log_value(self.a)
         self.check_flags_nz(self.a)
 
     def _lda_indx(self):
@@ -853,22 +870,22 @@ class CPU(object):
         return address
 
     def __lsr(self, value):
-        carry  = value & 0b0000001
-        value  = (value >> 1) & 0b01111111
+        carry = value & 0b0000001
+        value = (value >> 1) & 0b01111111
         self.status = (self.status & 0b11111110) | carry
         self.check_flags_nz(value)
         return value
 
     def _lsr_abs(self):
-         address, value = self.read_abs()
-         value = self.__lsr(value)
-         self.bus.write(address, value)
-         return address
+        address, value = self.read_abs()
+        value = self.__lsr(value)
+        self.bus.write(address, value)
+        return address
 
     def _lsr_absx(self):
         address, value = self.read_absx()
         value = self.__lsr(value)
-        self.bus.write (address, value)
+        self.bus.write(address, value)
         return address
 
     def _lsr_acc(self):

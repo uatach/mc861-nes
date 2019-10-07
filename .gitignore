@@ -2,6 +2,7 @@ game/asm6f
 game/rom.nes
 
 emulator/bin
+emulator/ext
 emulator/log
 
 __pycache__

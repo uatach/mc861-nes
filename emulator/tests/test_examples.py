@@ -20,9 +20,13 @@ def collect_examples():
     for filename, filepath in get_filenames("res/"):
         outputs.append(filepath)
 
-    assert len(inputs) == len(outputs), 'the number of tests do not match the number of outputs'
+    assert len(inputs) == len(
+        outputs
+    ), "the number of tests do not match the number of outputs"
     for a, b in list(zip(sorted(inputs), sorted(outputs))):
-        assert a.split("/")[-1] == b.split("/")[-1][:-2], 'expected tests names do not match'
+        assert (
+            a.split("/")[-1] == b.split("/")[-1][:-2]
+        ), "expected tests names do not match"
     return list(zip(sorted(inputs), sorted(outputs)))
 
 
