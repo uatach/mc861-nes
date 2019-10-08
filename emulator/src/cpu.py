@@ -21,7 +21,7 @@ def two_complements(value):
 def print_status(cpu, address=None):
     msg = (
         "| pc = 0x{:04x} | a = 0x{:02x} | x = 0x{:02x} "
-        "| y = 0x{:02x} | sp = 0x{:04x} | p[NV-BDIZC] = {:08b} |"
+        "| y = 0x{:02x} | sp = 0x01{:02x} | p[NV-BDIZC] = {:08b} |"
         "".format(cpu.pc, cpu.a, cpu.x, cpu.y, cpu.sp, cpu.status)
     )
     if address is not None:
@@ -239,7 +239,7 @@ class CPU(object):
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
         self.status = 0x34
         self.a, self.x, self.y = 0, 0, 0
-        self.sp = 0x01FD
+        self.sp = 0xFD
         self.bus.write_block((0x0000, 0x07FF), 0x07FF * [0])
 
         # setting pc to RESET handler at 0xFFFC
@@ -1142,7 +1142,7 @@ class CPU(object):
         self.check_flags_nz(self.a)
 
     def _txs(self):
-        self.sp = 0x0100 | self.x
+        self.sp = self.x
         # NOTE: do not check flags
 
     def _tya(self):
@@ -1197,14 +1197,14 @@ class CPU(object):
         self.status |= 0b00000100
 
     def __stack_push(self, value):
-        address = self.sp
+        address = 0x0100 + self.sp
         address = self.bus.write(address, value)
-        self.sp -= 1
+        self.sp = dec(self.sp)
         return address
 
     def __stack_pull(self):
-        self.sp += 1
-        address = self.sp
+        self.sp = inc(self.sp)
+        address = 0x0100 + self.sp
         value = self.bus.read(address)
         return address, value
 

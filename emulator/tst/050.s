@@ -47,6 +47,14 @@ RESET:
   PHA
   LDA #$00
   PLA
+
+  PLA
+  LDA #$42
+  PLA
+  LDA #$42
+  PHA
+  LDA #$C0
+  PHA
   BRK ; Abort execution
 
 NMI:
