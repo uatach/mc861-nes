@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 @click.command()
 @click.argument("filename", type=click.File("rb"))
 @click.option("-v", "--verbose", count=True, help="Increase verbosity.")
-def cli(filename, verbose):
+@click.option("--headless", is_flag=True, help="Hide game window.")
+def cli(filename, headless, verbose):
     level = logging.WARNING - 10 * verbose
     logging.basicConfig(
         format="%(levelname)-10s - %(name)-20s - %(message)s", level=level
@@ -24,7 +25,7 @@ def cli(filename, verbose):
     data = filename.read()
 
     bus = BUS()
-    ppu = PPU(bus)
+    ppu = PPU(bus, headless)
     cpu = CPU(bus)
     nes = NES(cpu, ppu, bus)
 

@@ -37,7 +37,7 @@ def test_error():
 @pytest.mark.parametrize("inpath, outpath", collect_examples())
 def test_example(inpath, outpath):
     """Runs test against a single file in the examples dir"""
-    result = CliRunner().invoke(cli, [inpath])
+    result = CliRunner().invoke(cli, ["--headless", inpath])
 
     if result.exception:
         raise result.exception

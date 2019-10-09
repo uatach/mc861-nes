@@ -1,4 +1,5 @@
 import attr
+import pygame
 
 from .register import Register
 
@@ -6,6 +7,7 @@ from .register import Register
 @attr.s
 class PPU(object):
     bus = attr.ib()
+    headless = attr.ib(False)
 
     ppuctrl = Register()
     ppumask = Register()
@@ -25,5 +27,13 @@ class PPU(object):
             start = end
         self.bus.mirror((0x2000, 0x2008), mirrors)
 
+        # pygame setup
+        if not self.headless:
+            pygame.init()
+            self.screen = pygame.display.set_mode([640, 480])
+            pygame.display.set_caption("pynesemu")
+
     def step(self):
-        pass
+        if not self.headless:
+            self.screen.fill(BLACK)
+            pygame.display.flip()
