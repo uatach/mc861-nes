@@ -4,6 +4,7 @@ import logging
 from .bus import BUS
 from .cpu import CPU
 from .nes import NES
+from .ppu import PPU
 
 
 log = logging.getLogger(__name__)
@@ -23,8 +24,8 @@ def cli(filename, verbose):
     data = filename.read()
 
     bus = BUS()
-    ppu = None
-    cpu = CPU()
+    ppu = PPU(bus)
+    cpu = CPU(bus)
     nes = NES(cpu, ppu, bus)
 
     nes.run(data)

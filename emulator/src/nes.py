@@ -30,7 +30,7 @@ class NES(object):
         log.debug("PRG size: %s", hex(len(prg_rom)))
         log.debug("CHR size: %s", hex(len(chr_rom)))
 
-        self.cpu.setup(self.bus, prg_rom)
+        self.cpu.setup(prg_rom)
 
         while True:
             try:

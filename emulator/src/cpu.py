@@ -51,6 +51,8 @@ class Register(object):
 
 @attr.s
 class CPU(object):
+    bus = attr.ib()
+
     def __attrs_post_init__(self):
         # setting class properties
         for reg in ["pc", "a", "x", "y", "sp", "status"]:
@@ -211,9 +213,7 @@ class CPU(object):
         }
         log.info("Handling %d opcodes", len(self.opcodes))
 
-    def setup(self, bus, rom):
-        self.bus = bus
-
+    def setup(self, rom):
         # RAM mirroring
         self.bus.mirror(
             (0x0000, 0x0800), [(0x0800, 0x1000), (0x1000, 0x1800), (0x1800, 0x2000)]
