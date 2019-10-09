@@ -39,14 +39,6 @@ class NES(object):
         if size < 0x8000:
             self.bus.mirror(rom_range, [(start - size, start)])
 
-        # PPU mirroring
-        start = 0x2008
-        mirrors = []
-        for end in range(0x2010, 0x4001, 8):
-            mirrors.append((start, end))
-            start = end
-        self.bus.mirror((0x2000, 0x2008), mirrors)
-
     def run(self, data):
         log.info("Running...")
 

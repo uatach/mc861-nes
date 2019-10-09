@@ -18,10 +18,9 @@ def inc(value, size=8):
     return patch(value + 1, size)
 
 
-def two_complements(value):
-    if value & (1 << 7):
-        return value - (1 << 8)
-    return value
+def complement(value, bits=8):
+    mask = 2 ** (bits - 1)
+    return -(value & mask) + (value & ~mask)
 
 
 def print_status(cpu, address=None):
@@ -44,11 +43,14 @@ def log_value(x):
 class CPU(object):
     bus = attr.ib()
 
-    def __attrs_post_init__(self):
-        # setting class properties
-        for reg in ["pc", "a", "x", "y", "sp", "status"]:
-            setattr(CPU, reg, Register())
+    pc = Register(16)
+    a = Register()
+    x = Register()
+    y = Register()
+    sp = Register()
+    status = Register()
 
+    def __attrs_post_init__(self):
         self.opcodes = {
             0x00: self._brk,
             0x01: self._ora_indx,
@@ -452,21 +454,21 @@ class CPU(object):
 
     def _bcc(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if not (self.status & 0b00000001):
             self.pc += value
 
     def _bcs(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if self.status & 0b00000001:
             self.pc += value
 
     def _beq(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if self.status & 0b00000010:
             self.pc += value
@@ -491,21 +493,21 @@ class CPU(object):
 
     def _bmi(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if self.status & 0b10000000:
             self.pc += value
 
     def _bne(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if not (self.status & 0b00000010):
             self.pc += value
 
     def _bpl(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if not (self.status & 0b10000000):
             self.pc += value
@@ -519,14 +521,14 @@ class CPU(object):
 
     def _bvc(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if not (self.status & 0b01000000):
             self.pc += value
 
     def _bvs(self):
         value = self.read_imm()
-        value = two_complements(value)
+        value = complement(value)
 
         if self.status & 0b01000000:
             self.pc += value
