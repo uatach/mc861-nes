@@ -229,7 +229,7 @@ class CPU(object):
 
         # ROM mirroring
         if size < 0x8000:
-            self.bus.mirror(rom_range, [(start - size, size)])
+            self.bus.mirror(rom_range, [(start - size, start)])
 
         # PPU mirroring
         start = 0x2008
