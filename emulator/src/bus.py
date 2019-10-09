@@ -22,7 +22,8 @@ class BUS(object):
 
     def read_double(self, addr):
         addr = self.mirrors.get(addr, addr)
-        return (self.memory[addr + 1] << 8) + self.memory[addr]
+        high = (addr + 1) % 2 ** 16
+        return (self.memory[high] << 8) + self.memory[addr]
 
     def read_target(self, addr):
         addr = self.mirrors.get(addr, addr)

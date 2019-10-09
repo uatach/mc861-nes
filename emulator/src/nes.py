@@ -25,10 +25,10 @@ class NES(object):
         log.info("Running...")
 
         header, prg_rom, chr_rom = load(data)
-        log.debug("Cartridge size: %d", len(data))
-        log.debug("Header size: %d", len(header))
-        log.debug("PRG size: %d", len(prg_rom))
-        log.debug("CHR size: %d", len(chr_rom))
+        log.debug("Cartridge size: %s", hex(len(data)))
+        log.debug("Header size: %s", hex(len(header)))
+        log.debug("PRG size: %s", hex(len(prg_rom)))
+        log.debug("CHR size: %s", hex(len(chr_rom)))
 
         self.cpu.setup(self.bus, prg_rom)
 

@@ -220,8 +220,8 @@ class CPU(object):
         )
 
         size = len(rom)
-        start = 0x8000
-        end = start + size
+        end = 0x10000
+        start = end - size
         rom_range = start, end
 
         # copy rom data to memory
@@ -229,7 +229,7 @@ class CPU(object):
 
         # ROM mirroring
         if size < 0x8000:
-            self.bus.mirror(rom_range, [(end, end + size)])
+            self.bus.mirror(rom_range, [(start - size, size)])
 
         # PPU mirroring
         start = 0x2008
