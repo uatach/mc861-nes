@@ -101,6 +101,48 @@ RESET:
   LDA ($20,X)
   LDA #$42
   LDA ($80),Y
+
+  ; page zero wrap
+  LDX #$FE
+  LDA #$42
+  LDA $00,X
+  LDA #$C0
+  LDA $01,X
+  LDA #$00
+  LDA $02,X
+  LDA #$C0
+  LDA $03,X
+
+  LDX #$01
+  LDA #$42
+  LDA $FD,X
+  LDA #$C0
+  LDA $FE,X
+  LDA #$00
+  LDA $FF,X
+  LDA #$C0
+  LDA $00,X
+
+  ; weirdly, following generates absolute loads
+  LDY #$FE
+  LDA #$42
+  LDA $00,Y ; same as LDA $0000,Y
+  LDA #$C0
+  LDA $01,Y
+  LDA #$00
+  LDA $02,Y
+  LDA #$C0
+  LDA $03,Y
+
+  LDY #$01
+  LDA #$42
+  LDA $FD,Y
+  LDA #$C0
+  LDA $FE,Y
+  LDA #$00
+  LDA $FF,Y
+  LDA #$C0
+  LDA $00,Y
   BRK ; Abort execution
 
 NMI:

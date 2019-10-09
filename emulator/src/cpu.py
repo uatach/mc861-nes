@@ -4,12 +4,16 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def patch(value, size=8):
+    return value % (2 ** size)
+
+
 def dec(value):
-    return (value - 1) % 2 ** 8
+    return patch(value - 1)
 
 
 def inc(value, size=8):
-    return (value + 1) % 2 ** size
+    return patch(value + 1, size)
 
 
 def two_complements(value):
@@ -266,13 +270,13 @@ class CPU(object):
         return addr, value
 
     def read_absx(self):
-        addr = self.__read_double() + self.x
+        addr = patch(self.__read_double() + self.x, 16)
         value = self.bus.read(addr)
         log_value(value)
         return addr, value
 
     def read_absy(self):
-        addr = self.__read_double() + self.y
+        addr = patch(self.__read_double() + self.y, 16)
         value = self.bus.read(addr)
         log_value(value)
         return addr, value
@@ -283,7 +287,7 @@ class CPU(object):
         return value
 
     def read_indx(self):
-        addr = self.__read_word() + self.x
+        addr = patch(self.__read_word() + self.x)
         addr = self.bus.read_double(addr)
         value = self.bus.read(addr)
         log_value(value)
@@ -291,7 +295,7 @@ class CPU(object):
 
     def read_indy(self):
         addr = self.__read_word()
-        addr = self.bus.read_double(addr) + self.y
+        addr = patch(self.bus.read_double(addr) + self.y, 16)
         value = self.bus.read(addr)
         log_value(value)
         return addr, value
@@ -303,13 +307,13 @@ class CPU(object):
         return addr, value
 
     def read_zpx(self):
-        addr = self.__read_word() + self.x
+        addr = patch(self.__read_word() + self.x)
         value = self.bus.read(addr)
         log_value(value)
         return addr, value
 
     def read_zpy(self):
-        addr = self.__read_word() + self.y
+        addr = patch(self.__read_word() + self.y)
         value = self.bus.read(addr)
         log_value(value)
         return addr, value
@@ -320,24 +324,24 @@ class CPU(object):
         return addr
 
     def write_absx(self, value):
-        addr = self.__read_double() + self.x
+        addr = patch(self.__read_double() + self.x, 16)
         self.bus.write(addr, value)
         return addr
 
     def write_absy(self, value):
-        addr = self.__read_double() + self.y
+        addr = patch(self.__read_double() + self.y, 16)
         self.bus.write(addr, value)
         return addr
 
     def write_indx(self, value):
-        addr = self.__read_word() + self.x
+        addr = patch(self.__read_word() + self.x)
         addr = self.bus.read_double(addr)
         self.bus.write(addr, value)
         return addr
 
     def write_indy(self, value):
         addr = self.__read_word()
-        addr = self.bus.read_double(addr) + self.y
+        addr = patch(self.bus.read_double(addr) + self.y, 16)
         self.bus.write(addr, value)
         return addr
 
@@ -347,12 +351,12 @@ class CPU(object):
         return addr
 
     def write_zpx(self, value):
-        addr = self.__read_word() + self.x
+        addr = patch(self.__read_word() + self.x)
         self.bus.write(addr, value)
         return addr
 
     def write_zpy(self, value):
-        addr = self.__read_word() + self.y
+        addr = patch(self.__read_word() + self.y)
         self.bus.write(addr, value)
         return addr
 
@@ -966,6 +970,7 @@ class CPU(object):
         return address
 
     def _plp(self):
+        # NOTE: https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
         address, value = self.__stack_pull()
         self.status = (self.status & 0b00110000) | (value & 0b11001111)
         return address
