@@ -1,6 +1,8 @@
 import attr
 import logging
 
+from .register import Register
+
 log = logging.getLogger(__name__)
 
 
@@ -36,17 +38,6 @@ def print_status(cpu, address=None):
 
 def log_value(x):
     log.debug("value: 0b{:08b} - 0x{:02X} - {:03d}".format(x, x, x))
-
-
-@attr.s
-class Register(object):
-    value = 0
-
-    def __get__(self, obj, type=None):
-        return self.value
-
-    def __set__(self, obj, value):
-        self.value = value
 
 
 @attr.s
@@ -213,38 +204,13 @@ class CPU(object):
         }
         log.info("Handling %d opcodes", len(self.opcodes))
 
-    def setup(self, rom):
-        # RAM mirroring
-        self.bus.mirror(
-            (0x0000, 0x0800), [(0x0800, 0x1000), (0x1000, 0x1800), (0x1800, 0x2000)]
-        )
-
-        size = len(rom)
-        end = 0x10000
-        start = end - size
-        rom_range = start, end
-
-        # copy rom data to memory
-        self.bus.write_block(rom_range, rom)
-
-        # ROM mirroring
-        if size < 0x8000:
-            self.bus.mirror(rom_range, [(start - size, start)])
-
-        # PPU mirroring
-        start = 0x2008
-        mirrors = []
-        for end in range(0x2010, 0x4001, 8):
-            mirrors.append((start, end))
-            start = end
-        self.bus.mirror((0x2000, 0x2008), mirrors)
-
+    def setup(self):
         # setting inital state as seen at the docs at:
         #  https://docs.google.com/document/d/1-9duwtoaHSB290ANLHiyDz7mwlN425e_aiLzmIjW1S8
         self.status = 0x34
         self.a, self.x, self.y = 0, 0, 0
         self.sp = 0xFD
-        self.bus.write_block((0x0000, 0x07FF), 0x07FF * [0])
+        self.bus.write_block((0x0000, 0x0800), 0x0800 * [0])
 
         # setting pc to RESET handler at 0xFFFC
         self.pc = self.bus.read_double(0xFFFC)

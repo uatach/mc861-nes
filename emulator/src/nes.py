@@ -21,6 +21,32 @@ class NES(object):
     ppu = attr.ib()
     bus = attr.ib()
 
+    def setup(self, rom):
+        # RAM mirroring
+        self.bus.mirror(
+            (0x0000, 0x0800), [(0x0800, 0x1000), (0x1000, 0x1800), (0x1800, 0x2000)]
+        )
+
+        size = len(rom)
+        end = 0x10000
+        start = end - size
+        rom_range = start, end
+
+        # copy rom data to memory
+        self.bus.write_block(rom_range, rom)
+
+        # ROM mirroring
+        if size < 0x8000:
+            self.bus.mirror(rom_range, [(start - size, start)])
+
+        # PPU mirroring
+        start = 0x2008
+        mirrors = []
+        for end in range(0x2010, 0x4001, 8):
+            mirrors.append((start, end))
+            start = end
+        self.bus.mirror((0x2000, 0x2008), mirrors)
+
     def run(self, data):
         log.info("Running...")
 
@@ -30,7 +56,10 @@ class NES(object):
         log.debug("PRG size: %s", hex(len(prg_rom)))
         log.debug("CHR size: %s", hex(len(chr_rom)))
 
-        self.cpu.setup(prg_rom)
+        self.bus.setup()
+        self.setup(prg_rom)
+        self.cpu.setup()
+        self.ppu.setup()
 
         while True:
             try:

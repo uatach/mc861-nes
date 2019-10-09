@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 
 @attr.s
 class BUS(object):
-    def __attrs_post_init__(self):
+    def setup(self):
         self.memory = {}
         self.mirrors = {}
 
