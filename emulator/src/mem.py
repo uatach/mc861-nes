@@ -4,24 +4,17 @@ from .bus import Target
 
 
 @attr.s
-class Cell(Target):
-    value = attr.ib(None)
-
-    def get(self):
-        return self.value
-
-    def set(self, value):
-        self.value = value
-
-
-@attr.s
-class MEM(object):
+class MEM(Target):
     bus = attr.ib()
-    cells = attr.ib(factory=list)
 
     def setup(self):
-        # FIXME: there is no need for this many cells
+        self.cells = {}
+
         for i in range(2 ** 16):
-            cell = Cell(0)
-            self.cells.append(cell)
-            self.bus.attach(i, cell)
+            self.bus.attach(i, self)
+
+    def read(self, addr):
+        return self.cells.get(addr, 0)
+
+    def write(self, addr, value):
+        self.cells[addr] = value

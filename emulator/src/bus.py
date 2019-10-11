@@ -6,10 +6,10 @@ log = logging.getLogger(__name__)
 
 @attr.s
 class Target(object):
-    def get(self):
+    def read(self, addr):
         raise NotImplementedError
 
-    def set(self, value):
+    def write(self, addr, value):
         raise NotImplementedError
 
 
@@ -31,27 +31,27 @@ class BUS(object):
 
     def read(self, addr):
         addr = self.mirrors.get(addr, addr)
-        value = self.targets[addr].get()
+        value = self.targets[addr].read(addr)
         return value
 
     def read_double(self, addr):
         addr = self.mirrors.get(addr, addr)
         high = (addr + 1) % 2 ** 16
-        value = self.targets[high].get() << 8
-        value += self.targets[addr].get()
+        value = self.targets[high].read(high) << 8
+        value += self.targets[addr].read(addr)
         return value
 
     def read_target(self, addr):
         addr = self.mirrors.get(addr, addr)
-        value = self.targets[addr].get()
+        value = self.targets[addr].read(addr)
         return addr, value
 
     def write(self, addr, data):
         addr = self.mirrors.get(addr, addr)
-        self.targets[addr].set(data)
+        self.targets[addr].write(addr, data)
         return addr
 
     def write_block(self, block, data):
         for addr, value in zip(range(*block), data):
             addr = self.mirrors.get(addr, addr)
-            self.targets[addr].set(value)
+            self.targets[addr].write(addr, value)
