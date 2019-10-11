@@ -6,10 +6,10 @@ log = logging.getLogger(__name__)
 
 @attr.s
 class Target(object):
-    def read(self, addr):
+    def read(self, addr):  # pragma: no cover
         raise NotImplementedError
 
-    def write(self, addr, value):
+    def write(self, addr, value):  # pragma: no cover
         raise NotImplementedError
 
 

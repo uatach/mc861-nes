@@ -60,6 +60,9 @@ class NES(object):
                 self.cpu.step()
                 self.ppu.step()
             except Exception as e:
-                if str(e) != "brk":
+                if str(e) == "nmi":
+                    self.cpu.nmi()
+                    continue
+                elif str(e) != "brk":
                     raise e
                 break

@@ -10,6 +10,7 @@ class PPU(Target):
     headless = attr.ib(False)
 
     def setup(self):
+        self.steps = 0
         self.registers = {}
 
         self.bus.attach(0x2000, self)
@@ -47,3 +48,8 @@ class PPU(Target):
             pygame.display.flip()
 
         self.write(0x2002, 0b10000000)
+        self.steps += 1
+
+        if self.steps > 1000:
+            self.steps = 0
+            raise Exception("nmi")

@@ -224,6 +224,14 @@ class CPU(object):
         log.debug("-" * 60)
         print_status(self, address)
 
+    def nmi(self):
+        value = self.bus.read_double(0xFFFC)
+        self.__stack_push((value & 0xFF00) >> 8)
+        self.__stack_push(value & 0xFF)
+        self.__stack_push(self.status | 0b00110000)
+        # setting pc to NMI handler at 0xFFFA
+        self.pc = self.bus.read_double(0xFFFA)
+
     def check_flags_nz(self, value):
         self.__check_flag_negative(value)
         self.__check_flag_zero(value)
