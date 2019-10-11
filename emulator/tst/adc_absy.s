@@ -31,10 +31,10 @@ RESET:
   JMP test
 test:
   LDA #$8
-  STA $2092
+  STA $0692
   LDA #$79
   LDY #$92
-  ADC $2000, Y
+  ADC $0600, Y
   BRK ; Abort execution
 
 NMI:

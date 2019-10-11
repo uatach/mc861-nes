@@ -31,16 +31,16 @@ RESET:
   JMP test
 test:
   LDA #$8
-  STA $2092
+  STA $0692
   LDA #$79
   LDX #$92
-  ADC $2000, X ;test overflow
+  ADC $0600, X ;test overflow
 
   LDA #$1
-  STA $2092
+  STA $0692
   LDA #$FF
   LDX #$92
-  ADC $2000, X ;test carry
+  ADC $0600, X ;test carry
 
   BRK ; Abort execution
 
