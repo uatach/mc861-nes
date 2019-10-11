@@ -1,8 +1,6 @@
 import attr
 import logging
 
-from .register import Register
-
 log = logging.getLogger(__name__)
 
 
@@ -43,12 +41,12 @@ def log_value(x):
 class CPU(object):
     bus = attr.ib()
 
-    pc = Register(16)
-    a = Register()
-    x = Register()
-    y = Register()
-    sp = Register()
-    status = Register()
+    pc = 0
+    a = 0
+    x = 0
+    y = 0
+    sp = 0
+    status = 0
 
     def __attrs_post_init__(self):
         self.opcodes = {

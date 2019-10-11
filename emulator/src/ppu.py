@@ -2,7 +2,6 @@ import attr
 import pygame
 
 from .bus import Target
-from .register import Register
 
 
 @attr.s
