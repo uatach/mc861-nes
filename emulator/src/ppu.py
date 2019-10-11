@@ -35,5 +35,5 @@ class PPU(object):
 
     def step(self):
         if not self.headless:
-            self.screen.fill(BLACK)
+            self.screen.fill((0, 0, 0))
             pygame.display.flip()

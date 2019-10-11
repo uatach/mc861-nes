@@ -5,10 +5,23 @@ log = logging.getLogger(__name__)
 
 
 @attr.s
+class Target(object):
+    def get(self):
+        raise NotImplementedError
+
+    def set(self, value):
+        raise NotImplementedError
+
+
+@attr.s
 class BUS(object):
     def setup(self):
-        self.memory = {}
         self.mirrors = {}
+        self.targets = {}
+
+    def attach(self, addr, target):
+        assert isinstance(target, Target)
+        self.targets[addr] = target
 
     def mirror(self, addr_range, mirrors):
         for m in mirrors:
@@ -16,27 +29,29 @@ class BUS(object):
                 self.mirrors[target] = origin
         log.debug("total mirrors: %s", hex(len(self.mirrors)))
 
-    def read(self, addr, return_target=False):
+    def read(self, addr):
         addr = self.mirrors.get(addr, addr)
-        return self.memory[addr]
+        value = self.targets[addr].get()
+        return value
 
     def read_double(self, addr):
         addr = self.mirrors.get(addr, addr)
         high = (addr + 1) % 2 ** 16
-        return (self.memory[high] << 8) + self.memory[addr]
+        value = self.targets[high].get() << 8
+        value += self.targets[addr].get()
+        return value
 
     def read_target(self, addr):
         addr = self.mirrors.get(addr, addr)
-        return addr, self.memory[addr]
+        value = self.targets[addr].get()
+        return addr, value
 
     def write(self, addr, data):
         addr = self.mirrors.get(addr, addr)
-        self.memory[addr] = data
-        log.debug("memory size: %s", hex(len(self.memory)))
+        self.targets[addr].set(data)
         return addr
 
     def write_block(self, block, data):
         for addr, value in zip(range(*block), data):
             addr = self.mirrors.get(addr, addr)
-            self.memory[addr] = value
-        log.debug("memory size: %s", hex(len(self.memory)))
+            self.targets[addr].set(value)

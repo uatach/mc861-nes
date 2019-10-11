@@ -17,9 +17,10 @@ def load(data):
 
 @attr.s
 class NES(object):
+    bus = attr.ib()
+    mem = attr.ib()
     cpu = attr.ib()
     ppu = attr.ib()
-    bus = attr.ib()
 
     def setup(self, rom):
         # RAM mirroring
@@ -49,6 +50,7 @@ class NES(object):
         log.debug("CHR size: %s", hex(len(chr_rom)))
 
         self.bus.setup()
+        self.mem.setup()
         self.setup(prg_rom)
         self.cpu.setup()
         self.ppu.setup()
@@ -56,6 +58,7 @@ class NES(object):
         while True:
             try:
                 self.cpu.step()
+                self.ppu.step()
             except Exception as e:
                 if str(e) != "brk":
                     raise e

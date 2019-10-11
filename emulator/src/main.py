@@ -3,6 +3,7 @@ import logging
 
 from .bus import BUS
 from .cpu import CPU
+from .mem import MEM
 from .nes import NES
 from .ppu import PPU
 
@@ -25,8 +26,9 @@ def cli(filename, headless, verbose):
     data = filename.read()
 
     bus = BUS()
-    ppu = PPU(bus, headless)
+    mem = MEM(bus)
     cpu = CPU(bus)
-    nes = NES(cpu, ppu, bus)
+    ppu = PPU(bus, headless)
+    nes = NES(bus, mem, cpu, ppu)
 
     nes.run(data)
